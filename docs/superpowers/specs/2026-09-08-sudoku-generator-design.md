@@ -120,11 +120,11 @@ because the grader runs after every candidate clue removal during generation.
 
 Three types carry cell values and are easy to confuse. They have distinct jobs:
 
-| Type | Mutability | Lifetime | Knows givens vs. filled? | Carries candidates? |
-|---|---|---|---|---|
-| `Grid` | mutable | during one solve or grade | no | yes |
-| `Puzzle` | immutable | the artifact | yes (it is all givens) | no |
-| `PlayState` | mutable | one browser session | yes | pencil marks only |
+| Type        | Mutability | Lifetime                  | Knows givens vs. filled? | Carries candidates? |
+| ----------- | ---------- | ------------------------- | ------------------------ | ------------------- |
+| `Grid`      | mutable    | during one solve or grade | no                       | yes                 |
+| `Puzzle`    | immutable  | the artifact              | yes (it is all givens)   | no                  |
+| `PlayState` | mutable    | one browser session       | yes                      | pencil marks only   |
 
 - **`Grid` is the solver's scratchpad.** Techniques mutate it step by step as they
   fire. It has no notion of which cells were given and which were deduced, because
@@ -147,7 +147,7 @@ gridFromValues(values: Uint8Array): Grid;  // exported from grid.ts, public
 
 It allocates a fresh `Grid` and computes candidates from scratch. Grading a puzzle
 is therefore `grade(gridFromValues(puzzle.givens))`. The harness calls it on every
-*Next step* press, projecting current play state into a throwaway grid:
+_Next step_ press, projecting current play state into a throwaway grid:
 
 ```ts
 interface PlayState {
@@ -228,21 +228,21 @@ grades the puzzle to completion.
 The grader runs techniques in strict cost order. It applies the cheapest technique
 that fires, then restarts the ladder from the top — the way a person solves.
 
-| Tier | Technique | Cost |
-|---|---|---|
-| Easy | Naked single | 1 |
-| Easy | Hidden single | 2 |
-| Medium | Naked pair | 5 |
-| Medium | Pointing pair/triple | 6 |
-| Medium | Claiming (box-line reduction) | 6 |
-| Medium | Naked triple | 8 |
-| Hard | Hidden pair | 10 |
-| Hard | Naked quad | 12 |
-| Hard | Hidden triple | 12 |
-| Hard | X-Wing | 15 |
-| Expert | Swordfish | 22 |
-| Expert | XY-Wing | 24 |
-| Expert | XYZ-Wing | 26 |
+| Tier   | Technique                     | Cost |
+| ------ | ----------------------------- | ---- |
+| Easy   | Naked single                  | 1    |
+| Easy   | Hidden single                 | 2    |
+| Medium | Naked pair                    | 5    |
+| Medium | Pointing pair/triple          | 6    |
+| Medium | Claiming (box-line reduction) | 6    |
+| Medium | Naked triple                  | 8    |
+| Hard   | Hidden pair                   | 10   |
+| Hard   | Naked quad                    | 12   |
+| Hard   | Hidden triple                 | 12   |
+| Hard   | X-Wing                        | 15   |
+| Expert | Swordfish                     | 22   |
+| Expert | XY-Wing                       | 24   |
+| Expert | XYZ-Wing                      | 26   |
 
 A grade produces two numbers, serving different purposes:
 
@@ -320,7 +320,7 @@ reached, so a failure explains itself.
 ### Batch generation
 
 ```ts
-generateSet({ count: 30, mix: { medium: 60, hard: 40 } })  // 18 medium, 12 hard
+generateSet({ count: 30, mix: { medium: 60, hard: 40 } }); // 18 medium, 12 hard
 ```
 
 - `mix` values are percentages and must sum to 100. Omitted tiers are 0.
@@ -349,7 +349,7 @@ locked.
 The page holds one `PlayState`. Givens come from `puzzle.givens` and are locked;
 typing writes to `entries`; pencil-mark mode writes to `marks`.
 
-**Explainer.** A *Next step* button projects the current `PlayState` through
+**Explainer.** A _Next step_ button projects the current `PlayState` through
 `toGrid`, runs the technique ladder against it, and reports the deduction in words — for example, "Hidden single: r4c7 =
 8, the only cell in box 5 that can hold 8" — highlighting the cells involved. It
 calls the same `techniques/` modules the grader uses. If the explainer is wrong, the
@@ -406,12 +406,12 @@ The harness catches these and displays the message rather than failing silently.
 
 Targets on the development machine, for a single puzzle:
 
-| Tier | Target |
-|---|---|
-| Easy | < 200 ms |
+| Tier   | Target   |
+| ------ | -------- |
+| Easy   | < 200 ms |
 | Medium | < 200 ms |
-| Hard | < 1 s |
-| Expert | < 5 s |
+| Hard   | < 1 s    |
+| Expert | < 5 s    |
 
 These are not asserted in unit tests, since they are machine-dependent and would be
 flaky. A `bench` script reports them so a regression is visible.

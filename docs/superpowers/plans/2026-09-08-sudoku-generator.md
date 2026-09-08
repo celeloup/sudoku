@@ -25,35 +25,35 @@
 - Clue count is always an **output**, never an input. No task introduces a per-tier clue target.
 - TypeScript runs `strict: true` **plus** `noUncheckedIndexedAccess`, `noUnusedLocals`, `noUnusedParameters`, `noImplicitReturns`, `noFallthroughCasesInSwitch`, and `exactOptionalPropertyTypes`. No `any` anywhere, exported or not.
 - ESLint runs typescript-eslint's **`strictTypeChecked` + `stylisticTypeChecked`** presets. Prettier owns formatting; ESLint does not fight it.
-- **Never suppress a diagnostic to make the build green.** No `@ts-ignore`, no `@ts-expect-error`, no `eslint-disable` — unless the suppression carries a comment explaining why the rule is wrong *here*, and you report it. A suppression added silently is a defect.
+- **Never suppress a diagnostic to make the build green.** No `@ts-ignore`, no `@ts-expect-error`, no `eslint-disable` — unless the suppression carries a comment explaining why the rule is wrong _here_, and you report it. A suppression added silently is a defect.
 - `noUncheckedIndexedAccess` makes typed-array reads `number | undefined`, so the engine uses `!` on indexed reads (`grid.candidates[c]!`). This is why `@typescript-eslint/no-non-null-assertion` is deliberately off: the alternative is hundreds of redundant runtime guards on indices already proven in range. `!` on an **indexed read** is idiomatic here; `!` used to paper over a genuinely nullable value is not.
 
 ## File Structure
 
-| File | Responsibility |
-|---|---|
-| `src/engine/types.ts` | Shared types: `Difficulty`, `Deduction`, `SolvePath`, `Puzzle`, `Technique` |
-| `src/engine/errors.ts` | `GenerationError`, `InvalidMixError`, `InvalidGridError` |
-| `src/engine/grid.ts` | `Grid`, unit/peer tables, bitmask helpers, `gridFromValues`, `setValue`, `eliminate`, `applyDeduction` |
-| `src/engine/rng.ts` | Seeded PRNG, seed hashing, shuffle, `randomSeed` |
-| `src/engine/solver-brute.ts` | `solveValues`, `countSolutions` |
-| `src/engine/techniques/singles.ts` | Naked single, hidden single |
-| `src/engine/techniques/intersections.ts` | Pointing, claiming |
-| `src/engine/techniques/naked-subsets.ts` | Naked pair/triple/quad |
-| `src/engine/techniques/hidden-subsets.ts` | Hidden pair/triple |
-| `src/engine/techniques/fish.ts` | X-Wing, Swordfish |
-| `src/engine/techniques/wings.ts` | XY-Wing, XYZ-Wing |
-| `src/engine/techniques/combinations.ts` | `combinations` helper, shared by subset/fish techniques |
-| `src/engine/grader.ts` | Technique ladder, `grade`, `nextStep` |
-| `src/engine/generator.ts` | `generateFullGrid`, symmetric digging, `generatePuzzle` |
-| `src/engine/batch.ts` | `generateSet`, largest-remainder distribution |
-| `src/engine/index.ts` | Public API re-exports |
-| `src/ui/board.ts` | `PlayState`, `toGrid`, grid rendering, keyboard input, conflict highlighting |
-| `src/ui/explainer.ts` | Next-step panel |
-| `src/ui/main.ts` | Wiring, controls |
-| `src/index.html`, `src/styles.css` | Page shell |
-| `scripts/bench.ts` | Per-tier generation timings |
-| `tests/helpers.ts` | Test-only grid builders |
+| File                                      | Responsibility                                                                                         |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `src/engine/types.ts`                     | Shared types: `Difficulty`, `Deduction`, `SolvePath`, `Puzzle`, `Technique`                            |
+| `src/engine/errors.ts`                    | `GenerationError`, `InvalidMixError`, `InvalidGridError`                                               |
+| `src/engine/grid.ts`                      | `Grid`, unit/peer tables, bitmask helpers, `gridFromValues`, `setValue`, `eliminate`, `applyDeduction` |
+| `src/engine/rng.ts`                       | Seeded PRNG, seed hashing, shuffle, `randomSeed`                                                       |
+| `src/engine/solver-brute.ts`              | `solveValues`, `countSolutions`                                                                        |
+| `src/engine/techniques/singles.ts`        | Naked single, hidden single                                                                            |
+| `src/engine/techniques/intersections.ts`  | Pointing, claiming                                                                                     |
+| `src/engine/techniques/naked-subsets.ts`  | Naked pair/triple/quad                                                                                 |
+| `src/engine/techniques/hidden-subsets.ts` | Hidden pair/triple                                                                                     |
+| `src/engine/techniques/fish.ts`           | X-Wing, Swordfish                                                                                      |
+| `src/engine/techniques/wings.ts`          | XY-Wing, XYZ-Wing                                                                                      |
+| `src/engine/techniques/combinations.ts`   | `combinations` helper, shared by subset/fish techniques                                                |
+| `src/engine/grader.ts`                    | Technique ladder, `grade`, `nextStep`                                                                  |
+| `src/engine/generator.ts`                 | `generateFullGrid`, symmetric digging, `generatePuzzle`                                                |
+| `src/engine/batch.ts`                     | `generateSet`, largest-remainder distribution                                                          |
+| `src/engine/index.ts`                     | Public API re-exports                                                                                  |
+| `src/ui/board.ts`                         | `PlayState`, `toGrid`, grid rendering, keyboard input, conflict highlighting                           |
+| `src/ui/explainer.ts`                     | Next-step panel                                                                                        |
+| `src/ui/main.ts`                          | Wiring, controls                                                                                       |
+| `src/index.html`, `src/styles.css`        | Page shell                                                                                             |
+| `scripts/bench.ts`                        | Per-tier generation timings                                                                            |
+| `tests/helpers.ts`                        | Test-only grid builders                                                                                |
 
 ## A Deliberate Deviation From the Spec
 
@@ -72,11 +72,13 @@ One published fixture is kept: the Wikipedia example puzzle, which is solvable b
 ### Task 1: Project scaffold, shared types, and the grid module
 
 **Files:**
+
 - Create: `package.json`, `tsconfig.json`, `vite.config.ts`, `vitest.config.ts`, `eslint.config.js`, `.prettierrc.json`, `.prettierignore`, `.gitignore` (exists — verify)
 - Create: `src/engine/types.ts`, `src/engine/errors.ts`, `src/engine/grid.ts`
 - Create: `tests/helpers.ts`, `tests/grid.test.ts`
 
 **Interfaces:**
+
 - Consumes: nothing.
 - Produces: `Difficulty`, `Deduction`, `SolvePath`, `Puzzle`, `Technique`, `Elimination` (types.ts); `GenerationError`, `InvalidMixError`, `InvalidGridError` (errors.ts); `Grid`, `SIZE`, `CELLS`, `ALL_CANDIDATES`, `ROWS`, `COLS`, `BOXES`, `UNITS`, `PEERS`, `rowOf`, `colOf`, `boxOf`, `bit`, `bitCount`, `bitsToDigits`, `cellName`, `gridFromValues`, `cloneGrid`, `setValue`, `eliminate`, `applyDeduction`, `isSolved` (grid.ts); `emptyGrid`, `gridFrom`, `only` (tests/helpers.ts).
 
@@ -163,10 +165,7 @@ export default tseslint.config(
       // noUncheckedIndexedAccess makes every typed-array read `number | undefined`.
       // `!` on an indexed read is the idiom here; see Global Constraints.
       '@typescript-eslint/no-non-null-assertion': 'off',
-      '@typescript-eslint/restrict-template-expressions': [
-        'error',
-        { allowNumber: true },
-      ],
+      '@typescript-eslint/restrict-template-expressions': ['error', { allowNumber: true }],
     },
   },
   {
@@ -377,9 +376,24 @@ export function onlyThese(g: Grid, spec: Record<number, number[]>): void {
 ```ts
 import { describe, expect, it } from 'vitest';
 import {
-  ALL_CANDIDATES, BOXES, COLS, PEERS, ROWS, UNITS,
-  bit, bitCount, bitsToDigits, boxOf, cellName, cloneGrid, colOf,
-  eliminate, gridFromValues, isSolved, rowOf, setValue,
+  ALL_CANDIDATES,
+  BOXES,
+  COLS,
+  PEERS,
+  ROWS,
+  UNITS,
+  bit,
+  bitCount,
+  bitsToDigits,
+  boxOf,
+  cellName,
+  cloneGrid,
+  colOf,
+  eliminate,
+  gridFromValues,
+  isSolved,
+  rowOf,
+  setValue,
 } from '../src/engine/grid';
 import { InvalidGridError } from '../src/engine/errors';
 import { emptyGrid, gridFrom, valuesFrom } from './helpers';
@@ -730,15 +744,16 @@ git add -A
 git commit -m "feat: project scaffold, shared types, and grid module"
 ```
 
-
 ---
 
 ### Task 2: Seeded random number generator
 
 **Files:**
+
 - Create: `src/engine/rng.ts`, `tests/rng.test.ts`
 
 **Interfaces:**
+
 - Consumes: nothing.
 - Produces: `type Rng = () => number`; `hashSeed(seed: string): number`; `makeRng(seed: string): Rng`; `shuffle<T>(items: T[], rng: Rng): T[]`; `randomSeed(): string`.
 
@@ -906,15 +921,16 @@ git add -A
 git commit -m "feat: seeded PRNG"
 ```
 
-
 ---
 
 ### Task 3: Brute-force solver
 
 **Files:**
+
 - Create: `src/engine/solver-brute.ts`, `tests/solver-brute.test.ts`
 
 **Interfaces:**
+
 - Consumes: `ALL_CANDIDATES`, `CELLS`, `PEERS`, `SIZE`, `bit`, `bitCount` from `grid.ts`.
 - Produces: `solveValues(values: Uint8Array): Uint8Array | null`; `countSolutions(values: Uint8Array, cap: number): number`.
 
@@ -1113,15 +1129,16 @@ git add -A
 git commit -m "feat: brute-force solver with solution counting"
 ```
 
-
 ---
 
 ### Task 4: Singles techniques
 
 **Files:**
+
 - Create: `src/engine/techniques/singles.ts`, `tests/techniques/singles.test.ts`
 
 **Interfaces:**
+
 - Consumes: `Grid`, `UNITS`, `bit`, `bitCount`, `bitsToDigits`, `cellName`, `CELLS`, `SIZE` from `grid.ts`; `Deduction`, `Technique` from `types.ts`.
 - Produces: `nakedSingle: Technique`; `hiddenSingle: Technique`.
 
@@ -1309,15 +1326,16 @@ git add -A
 git commit -m "feat: naked and hidden single techniques"
 ```
 
-
 ---
 
 ### Task 5: Intersection techniques
 
 **Files:**
+
 - Create: `src/engine/techniques/intersections.ts`, `tests/techniques/intersections.test.ts`
 
 **Interfaces:**
+
 - Consumes: `Grid`, `BOXES`, `ROWS`, `COLS`, `bit`, `boxOf`, `rowOf`, `colOf`, `cellName`, `SIZE` from `grid.ts`; `Deduction`, `Elimination`, `Technique` from `types.ts`.
 - Produces: `pointing: Technique`; `claiming: Technique`.
 
@@ -1485,18 +1503,16 @@ export const claiming: Technique = (grid) => {
   for (const line of lines) {
     for (let value = 1; value <= SIZE; value++) {
       const mask = bit(value);
-      const cells = line.cells.filter(
-        (c) => grid.values[c] === 0 && grid.candidates[c]! & mask,
-      );
+      const cells = line.cells.filter((c) => grid.values[c] === 0 && grid.candidates[c]! & mask);
       if (cells.length < 2) continue;
 
       const b = boxOf(cells[0]!);
       if (!cells.every((c) => boxOf(c) === b)) continue;
 
       const inLine = new Set(line.cells);
-      const eliminations: Elimination[] = BOXES[b]!
-        .filter((c) => !inLine.has(c) && grid.values[c] === 0 && grid.candidates[c]! & mask)
-        .map((c) => ({ cell: c, value }));
+      const eliminations: Elimination[] = BOXES[b]!.filter(
+        (c) => !inLine.has(c) && grid.values[c] === 0 && grid.candidates[c]! & mask,
+      ).map((c) => ({ cell: c, value }));
       if (!eliminations.length) continue;
 
       out.push({
@@ -1527,16 +1543,17 @@ git add -A
 git commit -m "feat: pointing and claiming techniques"
 ```
 
-
 ---
 
 ### Task 6: Naked subsets
 
 **Files:**
+
 - Create: `src/engine/techniques/combinations.ts`, `src/engine/techniques/naked-subsets.ts`
 - Create: `tests/techniques/combinations.test.ts`, `tests/techniques/naked-subsets.test.ts`
 
 **Interfaces:**
+
 - Consumes: `Grid`, `UNITS`, `bit`, `bitCount`, `bitsToDigits`, `cellName` from `grid.ts`; `Deduction`, `Elimination`, `Technique` from `types.ts`.
 - Produces: `combinations<T>(items: T[], size: number): T[][]` (combinations.ts); `nakedPair`, `nakedTriple`, `nakedQuad` — all `Technique` (naked-subsets.ts).
 
@@ -1575,11 +1592,7 @@ describe('combinations', () => {
 
 ```ts
 import { describe, expect, it } from 'vitest';
-import {
-  nakedPair,
-  nakedQuad,
-  nakedTriple,
-} from '../../src/engine/techniques/naked-subsets';
+import { nakedPair, nakedQuad, nakedTriple } from '../../src/engine/techniques/naked-subsets';
 import { bit } from '../../src/engine/grid';
 import { emptyGrid, only } from '../helpers';
 
@@ -1736,9 +1749,7 @@ function nakedSubset(size: number, cost: number): Technique {
   return (grid) => {
     const out: Deduction[] = [];
     for (const unit of UNITS) {
-      const open = unit.filter(
-        (c) => grid.values[c] === 0 && bitCount(grid.candidates[c]!) >= 2,
-      );
+      const open = unit.filter((c) => grid.values[c] === 0 && bitCount(grid.candidates[c]!) >= 2);
       if (open.length <= size) continue;
 
       for (const combo of combinations(open, size)) {
@@ -1791,15 +1802,16 @@ git add -A
 git commit -m "feat: naked pair, triple and quad techniques"
 ```
 
-
 ---
 
 ### Task 7: Hidden subsets
 
 **Files:**
+
 - Create: `src/engine/techniques/hidden-subsets.ts`, `tests/techniques/hidden-subsets.test.ts`
 
 **Interfaces:**
+
 - Consumes: `UNITS`, `SIZE`, `bit`, `bitsToDigits`, `cellName` from `grid.ts`; `combinations` from `techniques/combinations.ts`; `Deduction`, `Elimination`, `Technique` from `types.ts`.
 - Produces: `hiddenPair`, `hiddenTriple` — both `Technique`.
 
@@ -1964,15 +1976,16 @@ git add -A
 git commit -m "feat: hidden pair and triple techniques"
 ```
 
-
 ---
 
 ### Task 8: Fish techniques (X-Wing, Swordfish)
 
 **Files:**
+
 - Create: `src/engine/techniques/fish.ts`, `tests/techniques/fish.test.ts`
 
 **Interfaces:**
+
 - Consumes: `ROWS`, `COLS`, `SIZE`, `bit`, `rowOf`, `colOf`, `cellName` from `grid.ts`; `combinations` from `techniques/combinations.ts`; `Deduction`, `Elimination`, `Technique` from `types.ts`.
 - Produces: `xWing`, `swordfish` — both `Technique`.
 
@@ -2149,21 +2162,22 @@ git add -A
 git commit -m "feat: X-Wing and Swordfish techniques"
 ```
 
-
 ---
 
 ### Task 9: Wing techniques (XY-Wing, XYZ-Wing)
 
 **Files:**
+
 - Create: `src/engine/techniques/wings.ts`, `tests/techniques/wings.test.ts`
 
 **Interfaces:**
+
 - Consumes: `PEERS`, `CELLS`, `bit`, `bitCount`, `bitsToDigits`, `cellName` from `grid.ts`; `Deduction`, `Elimination`, `Technique` from `types.ts`.
 - Produces: `xyWing`, `xyzWing` — both `Technique`.
 
 **XY-Wing:** a bivalue pivot `{a,b}` with two bivalue peers `{a,c}` and `{b,c}`. Whichever value the pivot takes, one pincer becomes `c`, so `c` is removed from every cell that sees both pincers.
 
-**XYZ-Wing:** a trivalue pivot `{a,b,c}` with two bivalue peers `{a,c}` and `{b,c}`. `c` is removed from every cell that sees the pivot *and* both pincers.
+**XYZ-Wing:** a trivalue pivot `{a,b,c}` with two bivalue peers `{a,c}` and `{b,c}`. `c` is removed from every cell that sees the pivot _and_ both pincers.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -2320,16 +2334,14 @@ export const xyWing: Technique = (grid) => {
         const value = bitsToDigits(sharedMask)[0]!;
 
         const seesB = new Set(PEERS[b]!);
-        const eliminations: Elimination[] = PEERS[a]!
-          .filter(
-            (c) =>
-              c !== pivot &&
-              c !== b &&
-              seesB.has(c) &&
-              grid.values[c] === 0 &&
-              grid.candidates[c]! & sharedMask,
-          )
-          .map((c) => ({ cell: c, value }));
+        const eliminations: Elimination[] = PEERS[a]!.filter(
+          (c) =>
+            c !== pivot &&
+            c !== b &&
+            seesB.has(c) &&
+            grid.values[c] === 0 &&
+            grid.candidates[c]! & sharedMask,
+        ).map((c) => ({ cell: c, value }));
         if (!eliminations.length) continue;
 
         const targets = eliminations.map((e) => cellName(e.cell)).join(', ');
@@ -2375,17 +2387,15 @@ export const xyzWing: Technique = (grid) => {
 
         const seesA = new Set(PEERS[a]!);
         const seesB = new Set(PEERS[b]!);
-        const eliminations: Elimination[] = PEERS[pivot]!
-          .filter(
-            (c) =>
-              c !== a &&
-              c !== b &&
-              seesA.has(c) &&
-              seesB.has(c) &&
-              grid.values[c] === 0 &&
-              grid.candidates[c]! & sharedMask,
-          )
-          .map((c) => ({ cell: c, value }));
+        const eliminations: Elimination[] = PEERS[pivot]!.filter(
+          (c) =>
+            c !== a &&
+            c !== b &&
+            seesA.has(c) &&
+            seesB.has(c) &&
+            grid.values[c] === 0 &&
+            grid.candidates[c]! & sharedMask,
+        ).map((c) => ({ cell: c, value }));
         if (!eliminations.length) continue;
 
         const targets = eliminations.map((e) => cellName(e.cell)).join(', ');
@@ -2418,15 +2428,16 @@ git add -A
 git commit -m "feat: XY-Wing and XYZ-Wing techniques"
 ```
 
-
 ---
 
 ### Task 10: Grader
 
 **Files:**
+
 - Create: `src/engine/grader.ts`, `tests/grader.test.ts`
 
 **Interfaces:**
+
 - Consumes: every technique from Tasks 4–9; `Grid`, `cloneGrid`, `applyDeduction`, `isSolved` from `grid.ts`; `Difficulty`, `TIER_ORDER`, `Deduction`, `SolvePath` from `types.ts`.
 - Produces:
   ```ts
@@ -2442,7 +2453,7 @@ git commit -m "feat: XY-Wing and XYZ-Wing techniques"
   nextStep(grid: Grid): Deduction | null
   ```
 
-**Grading rule, stated once so every reader has it:** on each pass the grader walks `LADDER` in cost order and takes the *first* technique that fires. It applies **every** deduction that technique returned in that pass, counting each as one step, then restarts from the top of the ladder. `difficulty` is the tier of the most expensive technique used; a grid that needs no steps grades `easy`. `score` is the sum of every applied deduction's cost.
+**Grading rule, stated once so every reader has it:** on each pass the grader walks `LADDER` in cost order and takes the _first_ technique that fires. It applies **every** deduction that technique returned in that pass, counting each as one step, then restarts from the top of the ladder. `difficulty` is the tier of the most expensive technique used; a grid that needs no steps grades `easy`. `score` is the sum of every applied deduction's cost.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -2469,9 +2480,7 @@ describe('LADDER', () => {
 
   it('is ordered by non-decreasing tier', () => {
     for (let i = 1; i < LADDER.length; i++) {
-      expect(TIER_ORDER[LADDER[i]!.tier]).toBeGreaterThanOrEqual(
-        TIER_ORDER[LADDER[i - 1]!.tier],
-      );
+      expect(TIER_ORDER[LADDER[i]!.tier]).toBeGreaterThanOrEqual(TIER_ORDER[LADDER[i - 1]!.tier]);
     }
   });
 
@@ -2601,7 +2610,13 @@ Expected: FAIL — module not found.
 
 ```ts
 import { applyDeduction, cloneGrid, isSolved, type Grid } from './grid';
-import { TIER_ORDER, type Deduction, type Difficulty, type SolvePath, type Technique } from './types';
+import {
+  TIER_ORDER,
+  type Deduction,
+  type Difficulty,
+  type SolvePath,
+  type Technique,
+} from './types';
 import { hiddenSingle, nakedSingle } from './techniques/singles';
 import { claiming, pointing } from './techniques/intersections';
 import { nakedPair, nakedQuad, nakedTriple } from './techniques/naked-subsets';
@@ -2704,15 +2719,16 @@ git add -A
 git commit -m "feat: technique-ladder grader"
 ```
 
-
 ---
 
 ### Task 11: Generator
 
 **Files:**
+
 - Create: `src/engine/generator.ts`, `tests/generator.test.ts`
 
 **Interfaces:**
+
 - Consumes: `makeRng`, `shuffle`, `randomSeed`, `Rng` from `rng.ts`; `countSolutions` from `solver-brute.ts`; `grade` from `grader.ts`; `gridFromValues`, `CELLS`, `bit`, `bitsToDigits`, `PEERS`, `ALL_CANDIDATES` from `grid.ts`; `GenerationError` from `errors.ts`; `Difficulty`, `Puzzle`, `TIER_ORDER` from `types.ts`.
 - Produces: `generateFullGrid(rng: Rng): Uint8Array`; `SYMMETRIC_UNITS: readonly number[][]`; `generatePuzzle(opts: { difficulty: Difficulty; seed?: string }): Puzzle`; `MAX_ATTEMPTS`, `TIME_BUDGET_MS`.
 
@@ -2722,11 +2738,7 @@ git commit -m "feat: technique-ladder grader"
 
 ```ts
 import { describe, expect, it } from 'vitest';
-import {
-  SYMMETRIC_UNITS,
-  generateFullGrid,
-  generatePuzzle,
-} from '../src/engine/generator';
+import { SYMMETRIC_UNITS, generateFullGrid, generatePuzzle } from '../src/engine/generator';
 import { GenerationError } from '../src/engine/errors';
 import { grade } from '../src/engine/grader';
 import { gridFromValues } from '../src/engine/grid';
@@ -3035,16 +3047,17 @@ git add -A
 git commit -m "feat: difficulty-aware symmetric puzzle generator"
 ```
 
-
 ---
 
 ### Task 12: Batch API, public surface, and bench script
 
 **Files:**
+
 - Create: `src/engine/batch.ts`, `src/engine/index.ts`, `scripts/bench.ts`
 - Create: `tests/batch.test.ts`
 
 **Interfaces:**
+
 - Consumes: `generatePuzzle` from `generator.ts`; `InvalidMixError` from `errors.ts`; `Difficulty`, `Puzzle` from `types.ts`.
 - Produces: `generateSet(opts: { count: number; mix: Partial<Record<Difficulty, number>>; seed?: string }): Puzzle[]`; `distribute(count: number, mix: Partial<Record<Difficulty, number>>): Record<Difficulty, number>`; the public API re-exports in `index.ts`.
 
@@ -3181,9 +3194,10 @@ export function distribute(count: number, mix: Mix): Record<Difficulty, number> 
   }
 
   const exact = entries.map((e) => ({ ...e, raw: (count * e.pct) / 100 }));
-  const result = Object.fromEntries(
-    exact.map((e) => [e.tier, Math.floor(e.raw)]),
-  ) as Record<Difficulty, number>;
+  const result = Object.fromEntries(exact.map((e) => [e.tier, Math.floor(e.raw)])) as Record<
+    Difficulty,
+    number
+  >;
 
   let remaining = count - TIERS.reduce((sum, tier) => sum + result[tier], 0);
   const byRemainder = [...exact].sort((a, b) => {
@@ -3225,14 +3239,7 @@ export function generateSet(opts: { count: number; mix: Mix; seed?: string }): P
 - [ ] **Step 4: Implement `src/engine/index.ts`**
 
 ```ts
-export type {
-  Deduction,
-  Difficulty,
-  Elimination,
-  Puzzle,
-  SolvePath,
-  Technique,
-} from './types';
+export type { Deduction, Difficulty, Elimination, Puzzle, SolvePath, Technique } from './types';
 export { TIER_ORDER } from './types';
 export { GenerationError, InvalidGridError, InvalidMixError } from './errors';
 export {
@@ -3334,10 +3341,12 @@ Include the bench output in the report to the user.
 ### Task 13: Board — play state, rendering, and input
 
 **Files:**
+
 - Create: `src/ui/board.ts`, `src/styles.css`, `src/index.html`
 - Create: `tests/ui/board.test.ts`
 
 **Interfaces:**
+
 - Consumes: `Grid`, `gridFromValues`, `bit`, `PEERS`, `CELLS`, `SIZE`, `rowOf`, `colOf` from the engine; `Puzzle` from `types.ts`. Note that `document` is touched only inside `renderBoard`, never at module level, so the pure exports stay testable under Vitest's `node` environment.
 - Produces:
   ```ts
@@ -3372,8 +3381,7 @@ import { bit } from '../../src/engine/grid';
 import type { Puzzle } from '../../src/engine/types';
 import { valuesFrom } from '../helpers';
 
-const GIVENS =
-  '530070000600195000098000060800060003400803001700020006060000280000419005000080079';
+const GIVENS = '530070000600195000098000060800060003400803001700020006060000280000419005000080079';
 const SOLUTION =
   '534678912672195348198342567859761423426853791713924856961537284287419635345286179';
 
@@ -3703,7 +3711,11 @@ export function renderBoard(root: HTMLElement, state: PlayState, opts: BoardOpti
   --conflict: #c62828;
   --highlight: #fff3c4;
   --selected: #d7e6ff;
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
 }
 
 body {
@@ -3750,13 +3762,29 @@ main {
   background: #fff;
 }
 
-.cell.block-left { border-left: 2px solid var(--line); }
-.cell.block-top { border-top: 2px solid var(--line); }
-.cell.given { font-weight: 700; color: var(--given); }
-.cell.entry { color: var(--entry); }
-.cell.conflict { background: #ffe5e5; color: var(--conflict); }
-.cell.highlighted { background: var(--highlight); }
-.cell.selected { background: var(--selected); }
+.cell.block-left {
+  border-left: 2px solid var(--line);
+}
+.cell.block-top {
+  border-top: 2px solid var(--line);
+}
+.cell.given {
+  font-weight: 700;
+  color: var(--given);
+}
+.cell.entry {
+  color: var(--entry);
+}
+.cell.conflict {
+  background: #ffe5e5;
+  color: var(--conflict);
+}
+.cell.highlighted {
+  background: var(--highlight);
+}
+.cell.selected {
+  background: var(--selected);
+}
 
 .marks {
   display: grid;
@@ -3782,7 +3810,10 @@ main {
   margin: 0;
 }
 
-#status { min-height: 1.5rem; color: #555; }
+#status {
+  min-height: 1.5rem;
+  color: #555;
+}
 ```
 
 - [ ] **Step 7: Run the tests and typecheck**
@@ -3800,15 +3831,16 @@ git add -A
 git commit -m "feat: play state, board rendering, and page shell"
 ```
 
-
 ---
 
 ### Task 14: Explainer and wiring
 
 **Files:**
+
 - Create: `src/ui/explainer.ts`, `src/ui/main.ts`
 
 **Interfaces:**
+
 - Consumes: `nextStep` from `grader.ts`; `generatePuzzle` from `generator.ts`; `GenerationError` from `errors.ts`; everything from `ui/board.ts`.
 - Produces: `describeNextStep(state: PlayState): { text: string; highlighted: Set<number> }` (explainer.ts); no exports from `main.ts`.
 
@@ -4017,7 +4049,7 @@ Run: `npm run dev`, then open the printed URL and check each item:
 3. Givens are bold and black; typed digits are blue; givens cannot be overwritten.
 4. Typing a digit that duplicates a peer turns both cells red.
 5. `N` toggles pencil marks; digits then appear small in a 3×3 layout.
-6. *Next step* names a technique, describes the deduction, and highlights the cells it used.
+6. _Next step_ names a technique, describes the deduction, and highlights the cells it used.
 7. Solving the puzzle fully makes the status line say "solved!".
 8. Generating an Expert puzzle shows "Generating…" and then a grid, not a frozen page.
 
@@ -4042,7 +4074,7 @@ Report the results of the manual browser checks.
 **Known gaps, stated rather than hidden:**
 
 - The spec's "published puzzles with independently known ratings" fixture is replaced by technique unit tests, path replay, and generator round-trip. Rationale is in "A Deliberate Deviation From the Spec" above.
-- Two tests in Task 3 and Task 10 are written as tolerant assertions (`toBeGreaterThanOrEqual`, `toContain` over several outcomes) because the exact behaviour depends on grids whose properties cannot be asserted from memory. Whoever implements those tasks should tighten them to exact values once the real behaviour is observed — and must confirm the observed value is *correct*, not merely current.
+- Two tests in Task 3 and Task 10 are written as tolerant assertions (`toBeGreaterThanOrEqual`, `toContain` over several outcomes) because the exact behaviour depends on grids whose properties cannot be asserted from memory. Whoever implements those tasks should tighten them to exact values once the real behaviour is observed — and must confirm the observed value is _correct_, not merely current.
 - `score` is currently only reported, never used to order puzzles. That is intentional: the notebook ramp is a later concern.
 
 **Type consistency check.** `Technique` is declared once in `types.ts` and imported by all six technique modules and the grader. Names used across task boundaries — `gridFromValues`, `toGrid`, `nextStep`, `grade`, `generatePuzzle`, `generateSet`, `distribute`, `SYMMETRIC_UNITS`, `createPlayState`, `renderBoard`, `describeNextStep` — are spelled identically in the module that defines them and every module that consumes them. Technique `name` strings in `LADDER` match the `technique` field each technique module emits, which the Task 10 cost test asserts directly.
