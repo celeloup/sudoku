@@ -51,9 +51,10 @@ describe('hiddenSingle', () => {
     expect(found).not.toBeNull();
     expect(found!.some((d) => d.cell === 4 && d.value === 4)).toBe(true);
     expect(found![0]!.cost).toBe(2);
+    expect(found![0]).toMatchObject({ technique: 'hidden-single', cost: 2, cell: 4, value: 4 });
   });
 
-  it('does not fire when a digit fits two cells in every unit', () => {
+  it('does not fire on a fully open grid', () => {
     const g = emptyGrid();
     expect(hiddenSingle(g)).toBeNull();
   });
@@ -80,8 +81,10 @@ describe('hiddenSingle', () => {
   it('does not mutate the grid', () => {
     const g = emptyGrid();
     for (const c of [0, 1, 2, 3, 5, 6, 7, 8]) g.candidates[c]! &= ~bit(4);
-    const before = Uint16Array.from(g.candidates);
+    const beforeCandidates = Uint16Array.from(g.candidates);
+    const beforeValues = Uint8Array.from(g.values);
     hiddenSingle(g);
-    expect(g.candidates).toEqual(before);
+    expect(g.candidates).toEqual(beforeCandidates);
+    expect(g.values).toEqual(beforeValues);
   });
 });
