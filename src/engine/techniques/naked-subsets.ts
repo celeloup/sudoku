@@ -10,7 +10,7 @@ function nakedSubset(size: number, cost: number): Technique {
     const out: Deduction[] = [];
     for (const unit of UNITS) {
       const open = unit.filter((c) => grid.values[c] === 0 && bitCount(grid.candidates[c]!) >= 2);
-      if (open.length <= size) continue;
+      if (open.length < size) continue;
 
       for (const combo of combinations(open, size)) {
         let mask = 0;
