@@ -44,6 +44,21 @@ describe('nakedPair', () => {
     expect(nakedPair(g)).toBeNull();
   });
 
+  it('finds a subset whose digits are already absent from the rest of the unit', () => {
+    // Row 0 (= box 0): cells 0 and 1 form a genuine pair {3,7}; cell 2 is a
+    // third open cell but holds unrelated digits {1,2}. The pair is found,
+    // but since no other open cell in row 0 or box 0 carries 3 or 7, there is
+    // nothing left to eliminate. open.length (3) exceeds size (2), so this
+    // exercises the `if (!eliminations.length) continue;` branch on a unit
+    // that the size guard does not skip.
+    const g = emptyGrid();
+    g.candidates.fill(0);
+    only(g, 0, [3, 7]);
+    only(g, 1, [3, 7]);
+    only(g, 2, [1, 2]);
+    expect(nakedPair(g)).toBeNull();
+  });
+
   it('ignores cells with a single candidate', () => {
     const g = emptyGrid();
     only(g, 0, [3]);
