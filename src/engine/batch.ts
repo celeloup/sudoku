@@ -1,9 +1,8 @@
 import { InvalidMixError } from './errors';
 import { generatePuzzle } from './generator';
+import { TIERS } from './grader';
 import { randomSeed } from './rng';
 import type { Difficulty, Puzzle } from './types';
-
-const TIERS: Difficulty[] = ['easy', 'medium', 'hard', 'expert'];
 
 export type Mix = Partial<Record<Difficulty, number>>;
 
@@ -18,6 +17,9 @@ export function distribute(count: number, mix: Mix): Record<Difficulty, number> 
 
   const entries = TIERS.map((tier) => ({ tier, pct: mix[tier] ?? 0 }));
   for (const { tier, pct } of entries) {
+    if (!Number.isFinite(pct)) {
+      throw new InvalidMixError(`mix.${tier} must be a finite number, got ${pct}`);
+    }
     if (pct < 0) throw new InvalidMixError(`mix.${tier} must not be negative, got ${pct}`);
   }
 

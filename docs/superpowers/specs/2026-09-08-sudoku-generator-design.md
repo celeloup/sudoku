@@ -430,8 +430,10 @@ Two consequences, both accepted deliberately (2026-09-09):
 
 - `MAX_ATTEMPTS` is 3000, not 50. Fifty attempts fails to produce a Hard puzzle
   essentially every time.
-- The Hard budget is 3 s rather than 1 s. The measured average is ~420 ms; unlucky
-  seeds reach ~2.6 s.
+- The Hard budget is 3 s rather than 1 s. The measured average is ~420 ms; the tail
+  is variable and can exceed the 3000 ms budget -- the worst case the bench has
+  measured is 4097 ms, which is why the bench annotates that run
+  `ok (worst over budget)` rather than failing it.
 
 The alternative — moving XY-Wing down into Hard — was rejected because it would
 likely relocate the rarity to Expert rather than remove it, and because the current

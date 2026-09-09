@@ -109,6 +109,35 @@ describe('grade', () => {
     expect(result.score).toBe(0);
   });
 
+  it('reports stalled instead of throwing when a deduction goes stale mid-pass', () => {
+    // Row 0 cells 2..8 hold 3..9, so cell 0 and cell 1 are each reduced to
+    // {1,2} by the row alone. Column 0 has a 2 at r4c1 (cell 27) and column 1
+    // has a 2 at r7c2 (cell 55), which each strip the 2 leaving both cell 0
+    // and cell 1 with a single candidate: 1. gridFromValues accepts this --
+    // no unit has a duplicate value and no cell has zero candidates -- but
+    // the grid is contradictory: two peers in the same row/box both need 1.
+    // nakedSingle fires on both cells in the same pass, computed against one
+    // pre-pass snapshot. Applying the first (cell 0 := 1) eliminates 1 from
+    // its peer cell 1, so the second deduction (cell 1 := 1) is stale by the
+    // time its turn comes. `grade` must skip it rather than let
+    // `applyDeduction` throw `InvalidGridError`.
+    const values = new Uint8Array(81);
+    values[2] = 3;
+    values[3] = 4;
+    values[4] = 5;
+    values[5] = 6;
+    values[6] = 7;
+    values[7] = 8;
+    values[8] = 9;
+    values[27] = 2;
+    values[55] = 2;
+
+    const g = gridFromValues(values);
+    expect(() => grade(g)).not.toThrow();
+    const result = grade(g);
+    expect(result.outcome).toBe('stalled');
+  });
+
   it('honours maxTier by refusing techniques above it', () => {
     // Same two-cell fixture as above, but with maxTier raised to 'medium' so
     // the ladder is allowed to proceed. nakedPair fires once per unit

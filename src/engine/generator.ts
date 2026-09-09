@@ -57,6 +57,14 @@ export function generateFullGrid(rng: Rng): Uint8Array {
     return false;
   };
 
+  // Unreachable in practice: full backtracking over a 9x9 grid with at least
+  // one legal digit per empty cell always finds a completion (a solved grid
+  // always exists). This throw stays only as a defensive backstop against a
+  // future change to `place`/`fill` that could otherwise return a
+  // half-filled `values` silently. `GenerationError` (elsewhere documented
+  // as budget exhaustion) is a slight misnomer here, but reusing it keeps
+  // this from needing a whole new error class for a branch that should
+  // never run.
   if (!fill(0)) throw new GenerationError('could not build a full grid', 0, null);
   return values;
 }
@@ -126,6 +134,15 @@ export function generatePuzzle(opts: {
   maxAttempts?: number;
   budgetMs?: number;
 }): Puzzle {
+  // TypeScript's Difficulty union does not stop a plain-JavaScript caller
+  // (or a `as Difficulty` cast) from passing a value outside 'easy' |
+  // 'medium' | 'hard' | 'expert'. Reject it immediately -- the dig loop
+  // below cannot distinguish "no digging pass ever reaches this made-up
+  // tier" from "this tier is legitimately just hard to hit," so without this
+  // guard the bad value burns the entire attempt budget before failing.
+  if (!(opts.difficulty in TIER_ORDER)) {
+    throw new RangeError(`invalid difficulty: ${opts.difficulty}`);
+  }
   const seed = opts.seed ?? randomSeed();
   const rng = makeRng(seed);
   const maxAttempts = opts.maxAttempts ?? MAX_ATTEMPTS;

@@ -82,6 +82,9 @@ export function solveValues(values: Uint8Array): Uint8Array | null {
 
 /** Counts solutions, stopping as soon as `cap` have been found. */
 export function countSolutions(values: Uint8Array, cap: number): number {
+  // search()'s leaf pushes a found solution before consulting `cap`, so a
+  // cap of 0 (or less) must be rejected here rather than passed through.
+  if (cap <= 0) return 0;
   const state = initState(values);
   if (!state) return 0;
   return search(state, cap, []);

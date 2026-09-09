@@ -1,6 +1,4 @@
-import { GenerationError } from '../engine/errors';
-import { generatePuzzle } from '../engine/generator';
-import type { Difficulty } from '../engine/types';
+import { GenerationError, generatePuzzle, type Difficulty } from '../engine';
 import {
   createPlayState,
   isComplete,

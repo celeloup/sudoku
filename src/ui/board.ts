@@ -83,9 +83,9 @@ export function conflicts(state: PlayState): Set<number> {
 }
 
 export function isComplete(state: PlayState): boolean {
+  const values = mergedValues(state);
   for (let c = 0; c < CELLS; c++) {
-    const v = state.puzzle.givens[c] !== 0 ? state.puzzle.givens[c]! : state.entries[c]!;
-    if (v !== state.puzzle.solution[c]) return false;
+    if (values[c] !== state.puzzle.solution[c]) return false;
   }
   return true;
 }

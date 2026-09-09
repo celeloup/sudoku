@@ -23,8 +23,6 @@ function hiddenSubset(size: number, cost: number): Technique {
 
         const cells = open.filter((c) => grid.candidates[c]! & keep);
         if (cells.length !== size) continue;
-        // Every digit in the combo must actually occur, or this is a smaller subset masquerading as a larger one.
-        if (!combo.every((value) => cells.some((c) => grid.candidates[c]! & bit(value)))) continue;
 
         const eliminations: Elimination[] = [];
         for (const c of cells) {

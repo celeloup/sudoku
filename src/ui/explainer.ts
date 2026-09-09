@@ -1,5 +1,4 @@
-import { InvalidGridError } from '../engine';
-import { nextStep } from '../engine/grader';
+import { InvalidGridError, nextStep } from '../engine';
 import { toGrid, type PlayState } from './board';
 
 export interface StepDescription {
