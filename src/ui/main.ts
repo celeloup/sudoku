@@ -43,6 +43,17 @@ function act(mutate: () => void): void {
   syncButtons();
 }
 
+/** The single undo sequence, shared by the button and the keyboard chord. */
+function performUndo(): void {
+  if (!state) return;
+  if (undo(history, state)) {
+    highlighted = new Set();
+    draw();
+    report();
+  }
+  syncButtons();
+}
+
 function draw(): void {
   if (!state) return;
   renderBoard(boardEl, state, {
@@ -90,6 +101,10 @@ function generate(): void {
         err instanceof GenerationError
           ? `${err.message} (best tier reached: ${err.bestTier ?? 'none'})`
           : `Unexpected error: ${String(err)}`;
+      // The puzzle those snapshots described no longer exists, so a later
+      // undo must not be able to restore state belonging to a gone puzzle.
+      clear(history);
+      syncButtons();
     }
   }, 0);
 }
@@ -108,13 +123,7 @@ nextStepEl.addEventListener('click', () => {
 });
 
 undoEl.addEventListener('click', () => {
-  if (!state) return;
-  if (undo(history, state)) {
-    highlighted = new Set();
-    draw();
-    report();
-  }
-  syncButtons();
+  performUndo();
 });
 
 eraseEl.addEventListener('click', () => {
@@ -136,12 +145,7 @@ document.addEventListener('keydown', (event) => {
   const undoChord = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'z';
   if (undoChord) {
     event.preventDefault();
-    if (undo(history, state)) {
-      highlighted = new Set();
-      draw();
-      report();
-    }
-    syncButtons();
+    performUndo();
     return;
   }
 
