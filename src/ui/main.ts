@@ -193,8 +193,13 @@ document.addEventListener('keydown', (event) => {
     if (next >= 0 && next < 81) {
       // Horizontal moves must not wrap across rows.
       if (Math.abs(delta) === 1 && Math.floor(next / 9) !== Math.floor(selected / 9)) return;
+      // The old cell's slot for this digit no longer exists after the move, so
+      // restore focus to the same digit position in the newly selected cell
+      // rather than the (now gone) element itself.
+      const focused = describeFocus();
       selected = next;
       draw();
+      restoreFocus(focused ? { cell: next, digit: focused.digit } : null);
       syncButtons();
     }
     return;
