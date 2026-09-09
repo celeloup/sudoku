@@ -32,12 +32,34 @@ function syncButtons(): void {
   eraseEl.disabled = state === null || selected === null || isGiven(state, selected);
 }
 
+/** Records which slot has focus, if any, so a re-render can restore it. */
+function describeFocus(): { cell: number; digit: number } | null {
+  const el = document.activeElement;
+  if (!(el instanceof HTMLElement) || !el.classList.contains('slot')) return null;
+  const cell = Number(el.closest('[data-cell]')?.getAttribute('data-cell'));
+  const digit = Number(el.dataset.digit);
+  if (!Number.isInteger(cell) || !Number.isInteger(digit)) return null;
+  return { cell, digit };
+}
+
+function restoreFocus(target: { cell: number; digit: number } | null): void {
+  if (!target) return;
+  boardEl
+    .querySelector<HTMLButtonElement>(
+      `[data-cell="${String(target.cell)}"] .slot[data-digit="${String(target.digit)}"]`,
+    )
+    ?.focus();
+}
+
 /** Every board mutation goes through here, so undo can never miss one. */
 function act(mutate: () => void): void {
   if (!state) return;
+  const focused = describeFocus();
   if (commit(history, state, mutate)) {
     highlighted = new Set();
+    explanationEl.textContent = '';
     draw();
+    restoreFocus(focused);
     report();
   }
   syncButtons();
@@ -48,6 +70,7 @@ function performUndo(): void {
   if (!state) return;
   if (undo(history, state)) {
     highlighted = new Set();
+    explanationEl.textContent = '';
     draw();
     report();
   }
@@ -147,7 +170,8 @@ document.addEventListener('keydown', (event) => {
   }
   if (!state) return;
 
-  const undoChord = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'z';
+  const undoChord =
+    (event.metaKey || event.ctrlKey) && !event.shiftKey && event.key.toLowerCase() === 'z';
   if (undoChord) {
     event.preventDefault();
     performUndo();
@@ -184,10 +208,17 @@ document.addEventListener('keydown', (event) => {
     return;
   }
 
+  // Modifier chords (Cmd/Ctrl/Alt+digit) are browser or OS shortcuts (tab
+  // switching, among others) that happen to overlap the digit keys. Never
+  // treat them as board input — Shift is the only modifier digit entry uses.
+  if (event.metaKey || event.ctrlKey || event.altKey) return;
+
   // Shift+3 reports event.key as '#' on many layouts, so fall back to the
   // physical key. event.code is layout-independent: Digit3 stays Digit3
-  // whether or not Shift is held.
-  const codeDigit = /^Digit([1-9])$/.exec(event.code)?.[1];
+  // whether or not Shift is held. Gated on shiftKey so it only rescues that
+  // case — applied unconditionally it would reinterpret an unshifted key on
+  // layouts (e.g. AZERTY) where the physical digit row types punctuation.
+  const codeDigit = event.shiftKey ? /^Digit([1-9])$/.exec(event.code)?.[1] : undefined;
   const digitKey = /^[1-9]$/.test(event.key) ? event.key : (codeDigit ?? '');
 
   if (digitKey !== '') {

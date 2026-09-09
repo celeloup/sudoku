@@ -118,6 +118,19 @@ describe('placeDigit', () => {
     expect(s.marks[FREE]).toBe(bit(3));
     expect(s.shadow[FREE]).toBe(0);
   });
+
+  it('refuses NaN, leaving an Annotating cell Annotating', () => {
+    // Both `NaN < 1` and `NaN > SIZE` are false, so a range check alone lets
+    // NaN through: entries[cell] = NaN, stored by the Uint8Array as 0, is
+    // exactly the off-table entries=0, marks=0, shadow!=0 state the guard is
+    // meant to prevent. Requires the Number.isInteger clause to pass.
+    const s = createPlayState(puzzle());
+    toggleAnnotation(s, FREE, 3);
+    placeDigit(s, FREE, Number.NaN);
+    expect(s.entries[FREE]).toBe(0);
+    expect(s.marks[FREE]).toBe(bit(3));
+    expect(s.shadow[FREE]).toBe(0);
+  });
 });
 
 describe('toggleAnnotation', () => {

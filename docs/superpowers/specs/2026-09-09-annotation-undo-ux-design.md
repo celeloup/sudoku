@@ -100,8 +100,10 @@ wrong, and at this state size the memory argument for inverses does not apply.
 - Undo on an empty stack is a no-op, never an error.
 - Undo restores board state only. The selected cell is not part of the snapshot, so
   undoing does not move the selection.
-- **Snapshots must deep-copy the typed arrays.** Aliasing them would make undo restore
-  the present — the one bug this design admits.
+- **Snapshots must deep-copy the typed arrays.** Aliasing them would not corrupt undo
+  directly — it would make `commit`'s before/after comparison compare an array to
+  itself, always find no change, and never push a snapshot, so undo becomes a permanent
+  no-op instead. That's the one bug this design admits.
 
 No redo. Recovering from an over-undo means retyping a digit, which is cheap enough that
 a second stack and its invalidation rules are not worth the failure modes they add.

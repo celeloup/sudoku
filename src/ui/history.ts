@@ -15,8 +15,11 @@ export function createHistory(): History {
 }
 
 /**
- * Copies every array. Aliasing them instead would make undo restore the
- * present — the one bug this design admits, so it has its own test.
+ * Copies every array. Aliasing them instead would not corrupt undo directly —
+ * it would make `commit`'s before/after comparison in `same()` compare an
+ * array to itself, always find no change, and never push a snapshot. Undo
+ * would then silently become a permanent no-op. That's the one bug this
+ * design admits, so it has its own test.
  */
 function snapshot(state: PlayState): Snapshot {
   return {
