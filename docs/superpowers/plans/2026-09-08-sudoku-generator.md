@@ -3293,7 +3293,7 @@ const RUNS = 10;
 const TARGETS: Record<Difficulty, number> = {
   easy: 200,
   medium: 200,
-  hard: 1_000,
+  hard: 3_000,
   expert: 5_000,
 };
 

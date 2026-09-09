@@ -410,11 +410,32 @@ Targets on the development machine, for a single puzzle:
 | ------ | -------- |
 | Easy   | < 200 ms |
 | Medium | < 200 ms |
-| Hard   | < 1 s    |
+| Hard   | < 3 s    |
 | Expert | < 5 s    |
 
 These are not asserted in unit tests, since they are machine-dependent and would be
 flaky. A `bench` script reports them so a regression is visible.
+
+**Why Hard is the slowest tier.** Measured per-attempt hit rates are: easy ~100%,
+medium ~13%, hard ~0.3-0.7%, expert ~6%. Hard is roughly 20 times rarer than either
+neighbour, and rarer than Expert.
+
+This is an emergent consequence of the technique ladder, not a generator defect. A
+puzzle grades Hard only when its hardest _required_ technique is hidden-pair,
+naked-quad, hidden-triple, or X-Wing. XY-Wing (Expert, cost 24) is common in
+difficult puzzles, and any puzzle needing one grades Expert instead — so Hard is a
+narrow band squeezed between Medium and Expert.
+
+Two consequences, both accepted deliberately (2026-09-09):
+
+- `MAX_ATTEMPTS` is 3000, not 50. Fifty attempts fails to produce a Hard puzzle
+  essentially every time.
+- The Hard budget is 3 s rather than 1 s. The measured average is ~420 ms; unlucky
+  seeds reach ~2.6 s.
+
+The alternative — moving XY-Wing down into Hard — was rejected because it would
+likely relocate the rarity to Expert rather than remove it, and because the current
+assignment matches the conventional difficulty of these techniques.
 
 ## Open questions
 
