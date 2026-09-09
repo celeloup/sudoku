@@ -55,4 +55,23 @@ export default defineConfig(
     files: ['tests/**/*.ts', 'scripts/**/*.ts'],
     rules: { '@typescript-eslint/no-non-null-assertion': 'off' },
   },
+  {
+    // The UI must go through the engine's public barrel, not its submodules
+    // -- see src/engine/index.ts. This keeps the barrel the one place a
+    // future refactor of the engine's internals has to stay compatible with.
+    files: ['src/ui/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/engine/*'],
+              message: "Import from '../engine' (the public barrel), not an engine submodule.",
+            },
+          ],
+        },
+      ],
+    },
+  },
 );

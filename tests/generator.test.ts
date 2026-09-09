@@ -140,6 +140,14 @@ describe('generatePuzzle', () => {
       expect((err as GenerationError).bestTier).toBeNull();
     }
   });
+
+  it('rejects an invalid difficulty immediately, without burning the attempt budget', () => {
+    // TypeScript's Difficulty union does not stop a JS caller from passing
+    // something else through. Without an up-front guard, an unrecognised
+    // tier would never satisfy any digging pass and would silently burn all
+    // 3000 attempts before failing. Assert it fails fast instead.
+    expect(() => generatePuzzle({ difficulty: 'impossible' as Difficulty })).toThrow(RangeError);
+  });
 });
 
 describe('no unseeded randomness', () => {

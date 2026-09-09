@@ -1,4 +1,4 @@
-import { applyDeduction, cloneGrid, isSolved, type Grid } from './grid';
+import { applyDeduction, bit, cloneGrid, isSolved, type Grid } from './grid';
 import {
   TIER_ORDER,
   type Deduction,
@@ -38,13 +38,23 @@ export const LADDER: readonly TechniqueEntry[] = [
 ];
 
 export interface GradeResult {
+  /**
+   * Only meaningful when `outcome === 'solved'`. Otherwise this reports the
+   * hardest tier reached before the grader stopped, defaulting to `'easy'`
+   * if nothing fired at all -- so a caller who ignores `outcome` sees
+   * `'easy'` for a grid that cannot be solved by logic at all. Always check
+   * `outcome` before trusting this field.
+   */
   difficulty: Difficulty;
   score: number;
   path: SolvePath;
   outcome: 'solved' | 'stalled' | 'exceeded-max-tier';
 }
 
-const TIERS: Difficulty[] = ['easy', 'medium', 'hard', 'expert'];
+/** Difficulty tiers in ascending order, derived from TIER_ORDER so there is one source of truth. */
+export const TIERS: Difficulty[] = (Object.keys(TIER_ORDER) as Difficulty[]).sort(
+  (a, b) => TIER_ORDER[a] - TIER_ORDER[b],
+);
 
 export function grade(grid: Grid, opts?: { maxTier?: Difficulty }): GradeResult {
   const ceiling = opts?.maxTier ? TIER_ORDER[opts.maxTier] : TIER_ORDER.expert;
@@ -73,12 +83,35 @@ export function grade(grid: Grid, opts?: { maxTier?: Difficulty }): GradeResult 
       return { difficulty: TIERS[hardest]!, score, path, outcome: 'stalled' };
     }
 
-    hardest = Math.max(hardest, TIER_ORDER[fired.entry.tier]);
+    // Every deduction in this pass was computed against one pre-pass
+    // snapshot of `working`. Applying an earlier deduction can invalidate a
+    // later one in the same batch (e.g. two placements that both resolve to
+    // the same digit in the same unit) -- so re-check each placement against
+    // the grid's *current* state immediately before applying it, and skip it
+    // if it has gone stale rather than letting `applyDeduction` throw.
+    let appliedAny = false;
     for (const deduction of fired.deductions) {
+      if (
+        deduction.cell !== undefined &&
+        deduction.value !== undefined &&
+        !(working.candidates[deduction.cell]! & bit(deduction.value))
+      ) {
+        continue;
+      }
       applyDeduction(working, deduction);
       path.push(deduction);
       score += deduction.cost;
+      appliedAny = true;
     }
+
+    // If every deduction in the fired technique's batch went stale, nothing
+    // changed this pass -- the same technique would fire identically next
+    // pass, forever. Report stalled instead of looping.
+    if (!appliedAny) {
+      return { difficulty: TIERS[hardest]!, score, path, outcome: 'stalled' };
+    }
+
+    hardest = Math.max(hardest, TIER_ORDER[fired.entry.tier]);
   }
 }
 

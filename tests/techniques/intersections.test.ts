@@ -40,6 +40,21 @@ describe('pointing', () => {
     expect(pointing(g)).toBeNull();
   });
 
+  it('fires the pointing-pair form: two cells (not three) confine the digit', () => {
+    const g = emptyGrid();
+    // Box 0 is cells 0,1,2,9,10,11,18,19,20. Strip 7 from cell 2 as well as
+    // the rest of the box, so only cells 0 and 1 -- a pair, not a triple --
+    // still carry it, both in row 0.
+    strip(g, 7, [2, 9, 10, 11, 18, 19, 20]);
+    const found = pointing(g);
+    expect(found).not.toBeNull();
+    const d = found!.find((x) => x.eliminations?.some((e) => e.value === 7 && e.cell === 3));
+    expect(d).toBeDefined();
+    expect(d).toMatchObject({ technique: 'pointing', cost: 6, because: [0, 1] });
+    const cells = d!.eliminations!.map((e) => e.cell).sort((a, b) => a - b);
+    expect(cells).toEqual([3, 4, 5, 6, 7, 8]);
+  });
+
   it('does not fire when there is nothing left to eliminate', () => {
     const g = emptyGrid();
     strip(g, 7, [9, 10, 11, 18, 19, 20]);
@@ -90,6 +105,20 @@ describe('claiming', () => {
 
   it('does not fire on an untouched grid', () => {
     expect(claiming(emptyGrid())).toBeNull();
+  });
+
+  it('fires the claiming-pair form: two cells (not three) confine the digit', () => {
+    const g = emptyGrid();
+    // In row 0, strip 7 from cells 2..8 so only cells 0 and 1 -- a pair, not
+    // a triple -- still carry it, both inside box 0.
+    strip(g, 7, [2, 3, 4, 5, 6, 7, 8]);
+    const found = claiming(g);
+    expect(found).not.toBeNull();
+    const d = found!.find((x) => x.eliminations?.some((e) => e.value === 7 && e.cell === 9));
+    expect(d).toBeDefined();
+    expect(d).toMatchObject({ technique: 'claiming', cost: 6, because: [0, 1] });
+    const cells = d!.eliminations!.map((e) => e.cell).sort((a, b) => a - b);
+    expect(cells).toEqual([9, 10, 11, 18, 19, 20]);
   });
 
   it('does not fire when there is nothing left to eliminate', () => {

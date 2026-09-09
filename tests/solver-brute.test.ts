@@ -95,6 +95,13 @@ describe('countSolutions', () => {
     expect(countSolutions(new Uint8Array(81), 5)).toBe(5);
   });
 
+  it('returns 0 for a cap of 0, even on a grid with solutions', () => {
+    // search()'s leaf pushes a found solution before it consults `cap`, so a
+    // cap of 0 has to be rejected up front rather than let the leaf fire once.
+    expect(countSolutions(new Uint8Array(81), 0)).toBe(0);
+    expect(countSolutions(valuesFrom(WIKI_PUZZLE), 0)).toBe(0);
+  });
+
   it('detects a puzzle with exactly two solutions via an unavoidable rectangle', () => {
     // Locate an unavoidable rectangle in the solved grid (see findRectangle),
     // blank its four cells, and assert the resulting puzzle has exactly two

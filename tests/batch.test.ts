@@ -49,6 +49,18 @@ describe('distribute', () => {
     expect(() => distribute(10, { easy: 120, medium: -20 })).toThrow(InvalidMixError);
   });
 
+  it('rejects a NaN percentage instead of silently passing it through', () => {
+    // Math.abs(NaN - 100) > 1e-9 is false, so a naive range check on the sum
+    // lets this slip past unnoticed -- the guard must reject non-finite
+    // percentages explicitly, per-tier, before the sum check runs.
+    expect(() => distribute(10, { easy: NaN, medium: 100 })).toThrow(InvalidMixError);
+  });
+
+  it('rejects an Infinity percentage', () => {
+    expect(() => distribute(10, { easy: Infinity, medium: 100 })).toThrow(InvalidMixError);
+    expect(() => distribute(10, { easy: -Infinity, medium: 100 })).toThrow(InvalidMixError);
+  });
+
   it('rejects a non-positive or non-integer count', () => {
     expect(() => distribute(0, { easy: 100 })).toThrow(InvalidMixError);
     expect(() => distribute(-1, { easy: 100 })).toThrow(InvalidMixError);
