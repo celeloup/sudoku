@@ -15,6 +15,8 @@ export function renderBoard(root: HTMLElement, state: PlayState, opts: BoardOpti
 
   for (let c = 0; c < CELLS; c++) {
     const annotating = c === opts.selected && isAnnotatable(state, c);
+    // A <button> may not legally contain <button> children, so the annotating
+    // cell — which holds nine slot buttons — is a <div> instead.
     const cell = document.createElement(annotating ? 'div' : 'button');
     if (cell instanceof HTMLButtonElement) cell.type = 'button';
     cell.className = 'cell';

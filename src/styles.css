@@ -97,6 +97,7 @@ main {
   padding: 0;
 }
 
+/* Base: unset slots are invisible. */
 .cell.annotating .slot {
   all: unset;
   display: grid;
@@ -107,20 +108,34 @@ main {
   opacity: 0;
 }
 
-/* Set annotations are always visible. */
-.cell.annotating .slot.set {
+/* Set annotations are always visible. `:where(.set)` contributes zero
+   specificity, which matters below: it's what lets source order (not
+   selector weight) decide the hover tie-break. */
+.cell.annotating .slot:where(.set) {
   opacity: 1;
 }
 
-/* Hovering the cell reveals the unset positions faintly. */
-.cell.annotating:hover .slot:not(.set) {
+/* Hovering the cell reveals the unset positions faintly. `:where(:not(.set))`
+   again keeps this at the same specificity as the cursor rule below, rather
+   than outweighing it — five class-level selectors would otherwise beat that
+   rule's four and the cursor affordance would never show. */
+.cell.annotating:hover .slot:where(:not(.set)) {
   opacity: 0.35;
 }
 
-/* The slot under the cursor. Ties on specificity with the rule above, so it
-   must stay last to win. */
+/* The slot under the cursor. The `:where()` above holds that rule at the same
+   specificity as this one — (0,4,0) both — so source order decides and this
+   wins. Reorder these two and the cursor affordance silently disappears. */
 .cell.annotating .slot:hover {
   opacity: 0.85;
+  color: var(--entry);
+}
+
+/* A set annotation under the cursor brightens rather than dims — the mark
+   is about to be toggled off, not fading away. Higher specificity than every
+   rule above (it adds `.set` on top of `:hover`), so it always wins there. */
+.cell.annotating .slot.set:hover {
+  opacity: 1;
   color: var(--entry);
 }
 
