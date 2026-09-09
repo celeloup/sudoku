@@ -90,6 +90,46 @@ main {
   place-items: center;
 }
 
+/* The selected, annotatable cell becomes a 3x3 grid of toggle targets. */
+.cell.annotating {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  padding: 0;
+}
+
+.cell.annotating .slot {
+  all: unset;
+  display: grid;
+  place-items: center;
+  font-size: 0.55rem;
+  color: #666;
+  cursor: pointer;
+  opacity: 0;
+}
+
+/* Set annotations are always visible. */
+.cell.annotating .slot.set {
+  opacity: 1;
+}
+
+/* Hovering the cell reveals the unset positions faintly. */
+.cell.annotating:hover .slot:not(.set) {
+  opacity: 0.35;
+}
+
+/* The slot under the cursor. Ties on specificity with the rule above, so it
+   must stay last to win. */
+.cell.annotating .slot:hover {
+  opacity: 0.85;
+  color: var(--entry);
+}
+
+#actions {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.75rem;
+}
+
 #explainer {
   margin-top: 1rem;
   display: flex;

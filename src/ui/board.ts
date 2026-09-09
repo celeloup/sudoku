@@ -1,10 +1,11 @@
-import { CELLS, SIZE, bit, colOf, rowOf } from '../engine';
-import { conflicts, type PlayState } from './play-state';
+import { CELLS, SIZE, bit, cellName, colOf, rowOf } from '../engine';
+import { conflicts, isAnnotatable, type PlayState } from './play-state';
 
 export interface BoardOptions {
   selected: number | null;
   highlighted?: Set<number>;
   onSelect: (cell: number) => void;
+  onToggleAnnotation: (cell: number, digit: number) => void;
 }
 
 export function renderBoard(root: HTMLElement, state: PlayState, opts: BoardOptions): void {
@@ -13,10 +14,12 @@ export function renderBoard(root: HTMLElement, state: PlayState, opts: BoardOpti
   root.classList.add('board');
 
   for (let c = 0; c < CELLS; c++) {
-    const cell = document.createElement('button');
-    cell.type = 'button';
+    const annotating = c === opts.selected && isAnnotatable(state, c);
+    const cell = document.createElement(annotating ? 'div' : 'button');
+    if (cell instanceof HTMLButtonElement) cell.type = 'button';
     cell.className = 'cell';
     cell.dataset.cell = String(c);
+    if (annotating) cell.classList.add('annotating');
 
     if (colOf(c) % 3 === 0 && colOf(c) !== 0) cell.classList.add('block-left');
     if (rowOf(c) % 3 === 0 && rowOf(c) !== 0) cell.classList.add('block-top');
@@ -33,6 +36,21 @@ export function renderBoard(root: HTMLElement, state: PlayState, opts: BoardOpti
     } else if (entry !== 0) {
       cell.classList.add('entry');
       cell.textContent = String(entry);
+    } else if (annotating) {
+      for (let d = 1; d <= SIZE; d++) {
+        const isSet = (state.marks[c]! & bit(d)) !== 0;
+        const slot = document.createElement('button');
+        slot.type = 'button';
+        slot.className = isSet ? 'slot set' : 'slot';
+        slot.textContent = String(d);
+        slot.setAttribute('aria-label', `toggle note ${String(d)} in ${cellName(c)}`);
+        slot.setAttribute('aria-pressed', String(isSet));
+        slot.addEventListener('click', (event) => {
+          event.stopPropagation();
+          opts.onToggleAnnotation(c, d);
+        });
+        cell.append(slot);
+      }
     } else if (state.marks[c] !== 0) {
       const marks = document.createElement('span');
       marks.className = 'marks';

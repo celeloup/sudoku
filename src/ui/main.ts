@@ -64,6 +64,11 @@ function draw(): void {
       draw();
       syncButtons();
     },
+    onToggleAnnotation: (cell, digit) => {
+      act(() => {
+        toggleAnnotation(state!, cell, digit);
+      });
+    },
   });
 }
 
