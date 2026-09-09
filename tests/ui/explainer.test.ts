@@ -33,6 +33,27 @@ function sparsePuzzle(): Puzzle {
   };
 }
 
+/**
+ * A mid-solve snapshot of a medium puzzle (seed 'explainer-fixture-1'), advanced
+ * by hand past every naked/hidden single so the cheapest remaining ladder entry
+ * is naked-pair: `{ because: [3, 5], eliminations: [{ cell: 4, ... }] }`. The
+ * elimination cell (4) is not one of the `because` cells (3, 5), which is what
+ * distinguishes this fixture from the naked-single one above.
+ */
+const PAIR_SNAPSHOT =
+  '068000302052003060413267598645001209297056003831902650174629835089100726026008941';
+
+function pairPuzzle(): Puzzle {
+  return {
+    givens: valuesFrom(PAIR_SNAPSHOT),
+    solution: new Uint8Array(81),
+    difficulty: 'medium',
+    score: 0,
+    clueCount: valuesFrom(PAIR_SNAPSHOT).filter((v) => v !== 0).length,
+    seed: 'explainer-fixture-1',
+  };
+}
+
 describe('describeNextStep', () => {
   it('reports a contradictory position without throwing', () => {
     const state = createPlayState(puzzle());
@@ -70,5 +91,19 @@ describe('describeNextStep', () => {
     const result = describeNextStep(state);
     expect(result.text).toBe('Naked single: r5c5 = 5, the only digit that fits there.');
     expect(result.highlighted.has(40)).toBe(true);
+  });
+
+  it('highlights elimination cells even when they are not among the "because" cells', () => {
+    const state = createPlayState(pairPuzzle());
+    const result = describeNextStep(state);
+    expect(result.text).toBe(
+      'Naked pair: r1c4, r1c6 hold only {4, 5}, so those digits are removed from r1c5.',
+    );
+    // The pattern cells ("because").
+    expect(result.highlighted.has(3)).toBe(true);
+    expect(result.highlighted.has(5)).toBe(true);
+    // The elimination target cell, which is not in "because" — only reached by
+    // the `for (const e of step.eliminations ?? [])` merge line.
+    expect(result.highlighted.has(4)).toBe(true);
   });
 });

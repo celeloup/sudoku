@@ -1,3 +1,4 @@
+import { InvalidGridError } from '../engine';
 import { nextStep } from '../engine/grader';
 import { toGrid, type PlayState } from './board';
 
@@ -15,11 +16,14 @@ export function describeNextStep(state: PlayState): StepDescription {
   let grid;
   try {
     grid = toGrid(state);
-  } catch {
-    return {
-      text: 'That position is contradictory — remove a conflicting digit before asking for a hint.',
-      highlighted: new Set(),
-    };
+  } catch (err) {
+    if (err instanceof InvalidGridError) {
+      return {
+        text: 'That position is contradictory — remove a conflicting digit before asking for a hint.',
+        highlighted: new Set(),
+      };
+    }
+    throw err;
   }
 
   const step = nextStep(grid);
