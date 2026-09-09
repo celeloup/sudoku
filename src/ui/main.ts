@@ -1,13 +1,14 @@
 import { GenerationError, generatePuzzle, type Difficulty } from '../engine';
+import { renderBoard } from './board';
+import { describeNextStep } from './explainer';
 import {
   createPlayState,
+  erase,
   isComplete,
-  renderBoard,
-  setEntry,
-  toggleMark,
+  placeDigit,
+  toggleAnnotation,
   type PlayState,
-} from './board';
-import { describeNextStep } from './explainer';
+} from './play-state';
 
 const boardEl = document.querySelector<HTMLDivElement>('#board')!;
 const statusEl = document.querySelector<HTMLParagraphElement>('#status')!;
@@ -126,7 +127,7 @@ document.addEventListener('keydown', (event) => {
   }
 
   if (event.key === 'Backspace' || event.key === 'Delete' || event.key === '0') {
-    setEntry(state, selected, 0);
+    erase(state, selected);
     highlighted = new Set();
     draw();
     report();
@@ -135,8 +136,8 @@ document.addEventListener('keydown', (event) => {
 
   if (/^[1-9]$/.test(event.key)) {
     const digit = Number(event.key);
-    if (notesMode) toggleMark(state, selected, digit);
-    else setEntry(state, selected, digit);
+    if (notesMode) toggleAnnotation(state, selected, digit);
+    else placeDigit(state, selected, digit);
     highlighted = new Set();
     draw();
     report();
