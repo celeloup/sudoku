@@ -1,4 +1,4 @@
-import { CELLS, PEERS, bit, gridFromValues, type Grid, type Puzzle } from '../engine';
+import { CELLS, PEERS, SIZE, bit, gridFromValues, type Grid, type Puzzle } from '../engine';
 
 export interface PlayState {
   puzzle: Puzzle;
@@ -35,9 +35,12 @@ export function isAnnotatable(state: PlayState, cell: number): boolean {
 /**
  * Empty or Annotating -> Filled, remembering any displaced annotations.
  * Filled -> Filled leaves the shadow alone, so changing your mind about the
- * digit does not lose the annotations you started from.
+ * digit does not lose the annotations you started from. A digit outside
+ * 1..SIZE is refused: the spec's state table has no row for an Empty cell
+ * carrying a stale shadow, which is what `digit === 0` would produce here.
  */
 export function placeDigit(state: PlayState, cell: number, digit: number): void {
+  if (digit < 1 || digit > SIZE) return;
   if (isGiven(state, cell)) return;
   if (state.entries[cell] === 0) {
     state.shadow[cell] = state.marks[cell]!;
