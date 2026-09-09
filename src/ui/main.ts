@@ -1,14 +1,16 @@
 import { GenerationError, generatePuzzle, type Difficulty } from '../engine';
 import { renderBoard } from './board';
-import { describeNextStep } from './explainer';
 import {
   createPlayState,
   erase,
   isComplete,
+  isGiven,
   placeDigit,
   toggleAnnotation,
   type PlayState,
 } from './play-state';
+import { canUndo, clear, commit, createHistory, undo } from './history';
+import { describeNextStep } from './explainer';
 
 const boardEl = document.querySelector<HTMLDivElement>('#board')!;
 const statusEl = document.querySelector<HTMLParagraphElement>('#status')!;
@@ -17,12 +19,29 @@ const seedEl = document.querySelector<HTMLInputElement>('#seed')!;
 const difficultyEl = document.querySelector<HTMLSelectElement>('#difficulty')!;
 const controlsEl = document.querySelector<HTMLFormElement>('#controls')!;
 const nextStepEl = document.querySelector<HTMLButtonElement>('#next-step')!;
-const notesEl = document.querySelector<HTMLButtonElement>('#notes')!;
+const undoEl = document.querySelector<HTMLButtonElement>('#undo')!;
+const eraseEl = document.querySelector<HTMLButtonElement>('#erase')!;
 
 let state: PlayState | null = null;
 let selected: number | null = null;
 let highlighted = new Set<number>();
-let notesMode = false;
+const history = createHistory();
+
+function syncButtons(): void {
+  undoEl.disabled = !canUndo(history);
+  eraseEl.disabled = state === null || selected === null || isGiven(state, selected);
+}
+
+/** Every board mutation goes through here, so undo can never miss one. */
+function act(mutate: () => void): void {
+  if (!state) return;
+  if (commit(history, state, mutate)) {
+    highlighted = new Set();
+    draw();
+    report();
+  }
+  syncButtons();
+}
 
 function draw(): void {
   if (!state) return;
@@ -32,6 +51,7 @@ function draw(): void {
     onSelect: (cell) => {
       selected = cell;
       draw();
+      syncButtons();
     },
   });
 }
@@ -59,8 +79,10 @@ function generate(): void {
       const puzzle = generatePuzzle(seed ? { difficulty, seed } : { difficulty });
       state = createPlayState(puzzle);
       seedEl.value = puzzle.seed;
+      clear(history);
       draw();
       report();
+      syncButtons();
     } catch (err) {
       state = null;
       boardEl.replaceChildren();
@@ -85,9 +107,22 @@ nextStepEl.addEventListener('click', () => {
   draw();
 });
 
-notesEl.addEventListener('click', () => {
-  notesMode = !notesMode;
-  notesEl.textContent = `Pencil marks: ${notesMode ? 'on' : 'off'}`;
+undoEl.addEventListener('click', () => {
+  if (!state) return;
+  if (undo(history, state)) {
+    highlighted = new Set();
+    draw();
+    report();
+  }
+  syncButtons();
+});
+
+eraseEl.addEventListener('click', () => {
+  if (selected === null) return;
+  const cell = selected;
+  act(() => {
+    erase(state!, cell);
+  });
 });
 
 document.addEventListener('keydown', (event) => {
@@ -96,12 +131,17 @@ document.addEventListener('keydown', (event) => {
   if (event.target instanceof HTMLElement && event.target.closest('input, select, textarea')) {
     return;
   }
-
   if (!state) return;
 
-  if (event.key.toLowerCase() === 'n') {
-    notesMode = !notesMode;
-    notesEl.textContent = `Pencil marks: ${notesMode ? 'on' : 'off'}`;
+  const undoChord = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'z';
+  if (undoChord) {
+    event.preventDefault();
+    if (undo(history, state)) {
+      highlighted = new Set();
+      draw();
+      report();
+    }
+    syncButtons();
     return;
   }
 
@@ -122,25 +162,36 @@ document.addEventListener('keydown', (event) => {
       if (Math.abs(delta) === 1 && Math.floor(next / 9) !== Math.floor(selected / 9)) return;
       selected = next;
       draw();
+      syncButtons();
     }
     return;
   }
 
   if (event.key === 'Backspace' || event.key === 'Delete' || event.key === '0') {
-    erase(state, selected);
-    highlighted = new Set();
-    draw();
-    report();
+    const cell = selected;
+    act(() => {
+      erase(state!, cell);
+    });
     return;
   }
 
-  if (/^[1-9]$/.test(event.key)) {
-    const digit = Number(event.key);
-    if (notesMode) toggleAnnotation(state, selected, digit);
-    else placeDigit(state, selected, digit);
-    highlighted = new Set();
-    draw();
-    report();
+  // Shift+3 reports event.key as '#' on many layouts, so fall back to the
+  // physical key. event.code is layout-independent: Digit3 stays Digit3
+  // whether or not Shift is held.
+  const codeDigit = /^Digit([1-9])$/.exec(event.code)?.[1];
+  const digitKey = /^[1-9]$/.test(event.key) ? event.key : (codeDigit ?? '');
+
+  if (digitKey !== '') {
+    const digit = Number(digitKey);
+    const cell = selected;
+    if (event.shiftKey)
+      act(() => {
+        toggleAnnotation(state!, cell, digit);
+      });
+    else
+      act(() => {
+        placeDigit(state!, cell, digit);
+      });
   }
 });
 
