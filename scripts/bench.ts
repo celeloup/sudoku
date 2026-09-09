@@ -22,7 +22,12 @@ for (const tier of TIERS) {
   timings.sort((a, b) => a - b);
   const median = timings[Math.floor(RUNS / 2)]!;
   const worst = timings[RUNS - 1]!;
-  const status = median <= TARGETS[tier] ? 'ok' : 'OVER BUDGET';
+  const status =
+    median > TARGETS[tier]
+      ? 'OVER BUDGET'
+      : worst > TARGETS[tier]
+        ? 'ok (worst over budget)'
+        : 'ok';
   console.log(
     `${tier.padEnd(7)} median ${median.toFixed(0).padStart(6)}ms  ` +
       `worst ${worst.toFixed(0).padStart(6)}ms  ` +
