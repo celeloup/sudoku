@@ -40,7 +40,7 @@ export function isAnnotatable(state: PlayState, cell: number): boolean {
  * carrying a stale shadow, which is what `digit === 0` would produce here.
  */
 export function placeDigit(state: PlayState, cell: number, digit: number): void {
-  if (digit < 1 || digit > SIZE) return;
+  if (!Number.isInteger(digit) || digit < 1 || digit > SIZE) return;
   if (isGiven(state, cell)) return;
   if (state.entries[cell] === 0) {
     state.shadow[cell] = state.marks[cell]!;

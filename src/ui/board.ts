@@ -45,6 +45,7 @@ export function renderBoard(root: HTMLElement, state: PlayState, opts: BoardOpti
         slot.type = 'button';
         slot.className = isSet ? 'slot set' : 'slot';
         slot.textContent = String(d);
+        slot.dataset.digit = String(d);
         slot.setAttribute('aria-label', `toggle note ${String(d)} in ${cellName(c)}`);
         slot.setAttribute('aria-pressed', String(isSet));
         slot.addEventListener('click', (event) => {

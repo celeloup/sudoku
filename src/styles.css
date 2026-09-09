@@ -90,10 +90,16 @@ main {
   place-items: center;
 }
 
-/* The selected, annotatable cell becomes a 3x3 grid of toggle targets. */
+/* The selected, annotatable cell becomes a 3x3 grid of toggle targets.
+   `.cell` sets `place-items: center`, which is still in effect here unless
+   overridden — under that, grid items shrink to fit-content instead of
+   filling their track, so each `.slot` button below would render at the
+   size of its 0.55rem glyph rather than the track it sits in. `stretch`
+   makes each slot fill its cell of the 3x3 grid. */
 .cell.annotating {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  place-items: stretch;
   padding: 0;
 }
 
