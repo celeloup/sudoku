@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sudoku generator</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Sudoku generator</h1>
+      <form id="controls">
+        <label>
+          Difficulty
+          <select id="difficulty">
+            <option value="easy">Easy</option>
+            <option value="medium" selected>Medium</option>
+            <option value="hard">Hard</option>
+            <option value="expert">Expert</option>
+          </select>
+        </label>
+        <label>
+          Seed
+          <input id="seed" type="text" placeholder="blank = random" />
+        </label>
+        <button type="submit" id="generate">Generate</button>
+      </form>
+      <p id="status" role="status"></p>
+      <div id="board"></div>
+      <section id="explainer">
+        <button type="button" id="next-step">Next step</button>
+        <button type="button" id="notes">Pencil marks: off</button>
+        <p id="explanation"></p>
+      </section>
+    </main>
+    <script type="module" src="./ui/main.ts"></script>
+  </body>
+</html>
