@@ -396,11 +396,21 @@ process runs. This catches accidental `Math.random` use.
 The engine throws typed errors and never returns a half-valid puzzle.
 
 - `GenerationError` — budget exhausted; carries attempts made and best tier reached.
-- `InvalidMixError` — `mix` does not sum to 100, or `count` is not a positive
-  integer.
+- `InvalidMixError` — `mix` does not sum to 100, contains a negative or non-finite
+  percentage, or `count` is not a positive integer.
 - `InvalidGridError` — input grid is malformed or already contradictory.
+- `RangeError` — `generatePuzzle` was given a `difficulty` outside the four tiers.
+  A plain built-in rather than a custom class, because this is a caller mistake
+  that TypeScript already prevents; it exists so a JavaScript caller fails fast
+  instead of burning the whole attempt budget on an unreachable target.
 
 The harness catches these and displays the message rather than failing silently.
+
+`grade` is the exception to the first sentence: it reports failure through its
+`outcome` field rather than throwing, because the digging loop treats `stalled`
+and `exceeded-max-tier` as ordinary control flow. Given a contradictory grid it
+skips deductions that have gone stale and returns `stalled` rather than throwing
+from `setValue`.
 
 ## Performance budget
 
