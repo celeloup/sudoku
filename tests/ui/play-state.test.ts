@@ -109,6 +109,15 @@ describe('placeDigit', () => {
     placeDigit(s, GIVEN, 9);
     expect(s.entries[GIVEN]).toBe(0);
   });
+
+  it('refuses a digit outside 1..9, leaving an Annotating cell Annotating', () => {
+    const s = createPlayState(puzzle());
+    toggleAnnotation(s, FREE, 3);
+    placeDigit(s, FREE, 0);
+    expect(s.entries[FREE]).toBe(0);
+    expect(s.marks[FREE]).toBe(bit(3));
+    expect(s.shadow[FREE]).toBe(0);
+  });
 });
 
 describe('toggleAnnotation', () => {
@@ -146,8 +155,9 @@ describe('erase', () => {
 
   it('refuses to touch a given', () => {
     const s = createPlayState(puzzle());
+    s.marks[GIVEN] = bit(4); // direct write, bypassing toggleAnnotation's guard
     erase(s, GIVEN);
-    expect(s.puzzle.givens[GIVEN]).toBe(5);
+    expect(s.marks[GIVEN]).toBe(bit(4));
   });
 });
 
@@ -196,11 +206,12 @@ describe('toGrid', () => {
 
   it('ignores shadow as well as marks', () => {
     const a = createPlayState(puzzle());
+    placeDigit(a, FREE, 4); // shadow stays 0
     const b = createPlayState(puzzle());
     toggleAnnotation(b, FREE, 1);
-    placeDigit(b, FREE, 4);
-    erase(b, FREE);
-    erase(b, FREE);
+    placeDigit(b, FREE, 4); // shadow becomes bit(1)
+    expect(a.shadow[FREE]).toBe(0);
+    expect(b.shadow[FREE]).not.toBe(0); // the precondition the test rests on
     expect(toGrid(a).values).toEqual(toGrid(b).values);
     expect(toGrid(a).candidates).toEqual(toGrid(b).candidates);
   });
