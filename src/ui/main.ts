@@ -92,6 +92,12 @@ notesEl.addEventListener('click', () => {
 });
 
 document.addEventListener('keydown', (event) => {
+  // Let ordinary form controls (the seed input, the difficulty select) handle
+  // their own typing and caret movement instead of the board shortcuts below.
+  if (event.target instanceof HTMLElement && event.target.closest('input, select, textarea')) {
+    return;
+  }
+
   if (!state) return;
 
   if (event.key.toLowerCase() === 'n') {
