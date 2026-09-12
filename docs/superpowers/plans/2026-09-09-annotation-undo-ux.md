@@ -512,7 +512,9 @@ describe('commit', () => {
       placeDigit(s, FREE, 7);
     });
     // Mutate the live state directly, bypassing commit. If the snapshot aliased
-    // these arrays, undo would restore the present and this test would fail.
+    // these arrays, commit's change-detection would compare an array to itself,
+    // conclude nothing changed, never push, and undo would become a permanent
+    // no-op — which this test would catch.
     s.entries[FREE] = 9;
     s.marks[OTHER] = 0b101;
     undo(h, s);
