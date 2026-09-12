@@ -25,21 +25,6 @@ tsconfig flag to get it green.
 `src/ui/` is a thin harness holding no puzzle logic. The boundary is what keeps the
 deferred library packaging a config change rather than a refactor.
 
-```
-src/engine/
-  types.ts          Difficulty, TIER_ORDER, Deduction, SolvePath, Puzzle
-  errors.ts         GenerationError, InvalidMixError, InvalidGridError
-  grid.ts           Grid, unit/peer tables, bitmask helpers, gridFromValues
-  rng.ts            seeded PRNG; the ONLY sanctioned Math.random call site
-  solver-brute.ts   solveValues, countSolutions (uniqueness checks)
-  techniques/       six modules, thirteen techniques, one shared contract
-  grader.ts         the cost-ordered ladder; decides difficulty
-  generator.ts      full-grid fill, symmetric digging, generatePuzzle
-  batch.ts          generateSet across a percentage mix of tiers
-  index.ts          THE public surface
-src/ui/             board.ts (PlayState + rendering), explainer.ts, main.ts
-```
-
 ## Invariants
 
 Four of these are enforced by ESLint, not by convention. Do not work around them.
@@ -62,10 +47,6 @@ walks a cost-ordered ladder, applies every deduction the cheapest firing techniq
 found, and restarts. If nothing fires and the grid is incomplete the outcome is
 `stalled` — never promoted to a harder tier. That is what guarantees every generated
 puzzle is solvable by logic alone.
-
-Costs, which `grader.ts`'s LADDER is keyed on: naked-single 1, hidden-single 2,
-naked-pair 5, pointing 6, claiming 6, naked-triple 8, hidden-pair 10, naked-quad 12,
-hidden-triple 12, x-wing 15, swordfish 22, xy-wing 24, xyz-wing 26.
 
 **Hard is ~20x rarer than its neighbours, and rarer than Expert.** XY-Wing sits in
 Expert, so any puzzle needing one grades Expert instead, leaving Hard a narrow band.
