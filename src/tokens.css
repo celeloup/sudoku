@@ -120,8 +120,15 @@
 
 /* Themes: one chosen ink plus the four colors computed from it. */
 
+/* --on-ink is the label colour on a solid --ink fill. The design system says
+   the app picks whichever of --pencil and --paper scores higher against the
+   ink; CSS cannot compute that, so each theme records the winner. Measured:
+   clementine 4.8:1 pencil vs 3.0:1 paper, piscine 4.8:1 paper vs 3.0:1 pencil,
+   menthe 4.2:1 pencil vs 3.4:1 paper, graphite 14.2:1 paper. */
+
 [data-theme='clementine'] {
   --ink: #f36f27;
+  --on-ink: var(--pencil);
   --ink-strong: #d15f22;
   --ink-deep: #a34a1a;
   --tint: #fde9df;
@@ -130,6 +137,7 @@
 
 [data-theme='piscine'] {
   --ink: #1e6fe0;
+  --on-ink: var(--paper);
   --ink-strong: #1e6fe0;
   --ink-deep: #1a5ebe;
   --tint: #dde9fa;
@@ -138,6 +146,7 @@
 
 [data-theme='menthe'] {
   --ink: #0e9f6e;
+  --on-ink: var(--pencil);
   --ink-strong: #0d9164;
   --ink-deep: #0a724f;
   --tint: #dbf1e9;
@@ -146,6 +155,7 @@
 
 [data-theme='graphite'] {
   --ink: #2b2a33;
+  --on-ink: var(--paper);
   --ink-strong: #2b2a33;
   --ink-deep: #2b2a33;
   --tint: #dfdfe0;

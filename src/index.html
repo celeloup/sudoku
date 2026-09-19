@@ -1,41 +1,48 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="clementine">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Sudoku generator</title>
-    <link rel="stylesheet" href="./styles.css" />
+    <title>Sudoku de poche</title>
+    <link rel="stylesheet" href="./play.css" />
   </head>
   <body>
-    <main>
-      <h1>Sudoku generator</h1>
-      <form id="controls">
-        <label>
-          Difficulty
-          <select id="difficulty">
-            <option value="easy">Easy</option>
-            <option value="medium" selected>Medium</option>
-            <option value="hard">Hard</option>
-            <option value="expert">Expert</option>
-          </select>
-        </label>
-        <label>
-          Seed
-          <input id="seed" type="text" placeholder="blank = random" />
-        </label>
-        <button type="submit" id="generate">Generate</button>
-      </form>
-      <p id="status" role="status"></p>
-      <div id="board"></div>
-      <div id="actions">
-        <button type="button" id="undo" disabled>Undo</button>
-        <button type="button" id="erase" disabled>Erase</button>
-      </div>
-      <section id="explainer">
-        <button type="button" id="next-step">Next step</button>
-        <p id="explanation"></p>
-      </section>
+    <main class="sdp-play" data-size="md">
+      <header class="sdp-head">
+        <div class="sdp-no">No.</div>
+        <div class="sdp-numberline">
+          <span class="sdp-numeral">001</span>
+          <span class="sdp-difficulty" id="difficulty"></span>
+        </div>
+      </header>
+
+      <div id="grid"></div>
+      <p class="sdp-seed" id="seed"></p>
+      <p class="sdp-message" id="message" role="status"></p>
+      <div id="pad"></div>
+
+      <button type="button" class="sdp-button sdp-button--quiet" id="menu">New game</button>
+
+      <dialog id="new-game" class="sdp-dialog">
+        <form method="dialog">
+          <fieldset class="sdp-segmented">
+            <legend>Difficulty</legend>
+            <label><input type="radio" name="difficulty" value="easy" />Easy</label>
+            <label> <input type="radio" name="difficulty" value="medium" checked />Medium </label>
+            <label><input type="radio" name="difficulty" value="hard" />Hard</label>
+            <label><input type="radio" name="difficulty" value="expert" />Expert</label>
+          </fieldset>
+          <div class="sdp-dialog__actions">
+            <button type="submit" class="sdp-button sdp-button--primary" value="start">
+              Start
+            </button>
+            <button type="submit" class="sdp-button sdp-button--quiet" value="cancel">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </dialog>
     </main>
-    <script type="module" src="./ui/main.ts"></script>
+    <script type="module" src="./ui/play.ts"></script>
   </body>
 </html>

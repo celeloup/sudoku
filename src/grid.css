@@ -106,8 +106,42 @@
   color: var(--pencil-soft);
 }
 
+/* The selected empty cell offers all nine slots, but only the set ones are
+   content: an unset slot drawn like a note would make every selected cell read
+   as "all nine noted". They stay invisible until the pointer or the keyboard
+   is on them, which is the affordance, not the state. */
+
+.sdp-slot {
+  opacity: 0;
+}
+
 .sdp-slot--set {
   color: var(--pencil);
+  opacity: 1;
+}
+
+/* Hovering the cell reveals the unset positions faintly, so it is clear they
+   can be clicked. The three things that must stay at full strength -- a set
+   mark, the slot under the pointer, the slot under the keyboard -- are
+   excluded here rather than fought over in the cascade, because they cannot
+   win it: `.sdp-cell:hover .sdp-slot` is (0,3,0) and `.sdp-slot:focus-visible`
+   only (0,2,0), so anything left to source order would lose whenever the
+   pointer happens to rest over the grid. That compound state is real -- the
+   pointer sits still while the keyboard moves focus -- and `opacity`
+   composites the element's own outline, so a focus ring left at 0.4 measures
+   about 2.3:1 on paper, under the 3:1 a non-text indicator needs.
+   `:not()` takes the specificity of its most specific argument, so this
+   selector is (0,4,0); it has to stay above `.sdp-slot`'s (0,1,0), which it
+   does by specificity, not by order. */
+.sdp-cell:hover .sdp-slot:not(.sdp-slot--set, :hover, :focus-visible) {
+  opacity: var(--opacity-muted);
+}
+
+/* Nothing above competes with these: the reveal rule excludes exactly them,
+   and a set mark carries its own opacity with its color further up. */
+.sdp-slot:hover,
+.sdp-slot:focus-visible {
+  opacity: 1;
 }
 
 /* Variants */

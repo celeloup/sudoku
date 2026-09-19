@@ -1,0 +1,358 @@
+/* The Play screen: the printed puzzle page rearranged for a browser. Puzzle
+   number top left, difficulty right-aligned on the grid's top edge, grid, seed
+   right-aligned beneath. The pad goes under the grid on phones and beside it
+   above --bp-wide. Nothing else is on screen while playing.
+   See design-system.md, Patterns > Play. */
+
+@import './tokens.css';
+@import './grid.css';
+@import './components.css';
+@import './number-pad.css';
+
+/* Agdasima, Akatab and JetBrains Mono are single-weight faces, so one file
+   covers each. Inter needs all four: a family declared at 700 alone answers a
+   400 request with that face, and entered digits would come out as bold as
+   givens. Weight is what separates them, and it is the only thing that does
+   in the Graphite theme or for a colour-blind player. */
+
+@font-face {
+  font-family: 'Inter';
+  src: url('./fonts/inter-400.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Inter';
+  src: url('./fonts/inter-500.woff2') format('woff2');
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Inter';
+  src: url('./fonts/inter-600.woff2') format('woff2');
+  font-weight: 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Inter';
+  src: url('./fonts/inter-700.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Agdasima';
+  src: url('./fonts/agdasima-400.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Akatab';
+  src: url('./fonts/akatab-700.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('./fonts/jetbrains-mono-400.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
+/* --- The page ------------------------------------------------------------ */
+
+html {
+  background: var(--wash);
+}
+
+body {
+  margin: 0;
+  /* --space-4 side padding is what keeps a 360px phone at or above
+     --size-cell-min: (360 - 32) / 9 = 36.4px per cell. */
+  padding: var(--space-6) var(--space-4);
+  font-family: var(--font-text);
+  color: var(--pencil);
+}
+
+/* --- Layout -------------------------------------------------------------- */
+
+.sdp-play {
+  display: grid;
+  justify-content: center;
+  grid-template-columns: min(100%, var(--size-grid-max));
+  grid-template-areas:
+    'head'
+    'grid'
+    'seed'
+    'message'
+    'pad'
+    'menu';
+  row-gap: var(--space-3);
+  column-gap: var(--space-5);
+}
+
+/* Everything hangs off a grid edge, the way it does on paper. Each child is
+   matched by its component class, because renderGrid and renderPad own the
+   class attribute of the element they are handed. */
+
+.sdp-play > .sdp-head {
+  grid-area: head;
+}
+
+.sdp-play > .sdp-grid {
+  grid-area: grid;
+}
+
+.sdp-play > .sdp-seed {
+  grid-area: seed;
+}
+
+.sdp-play > .sdp-message {
+  grid-area: message;
+}
+
+.sdp-play > .sdp-pad {
+  grid-area: pad;
+}
+
+.sdp-play > .sdp-button {
+  grid-area: menu;
+  justify-self: start;
+  margin-top: var(--space-4);
+}
+
+.sdp-no {
+  margin-bottom: var(--space-1);
+}
+
+.sdp-seed {
+  margin: 0;
+}
+
+.sdp-message {
+  margin: 0;
+  font-size: var(--text-md);
+  line-height: 1.55;
+  /* Holds one line of height while empty, so a puzzle arriving does not shift
+     the pad and the button up the page. */
+  min-height: calc(var(--text-md) * 1.55);
+}
+
+@media (width >= 900px) {
+  /* --bp-wide; @media cannot read a custom property */
+  .sdp-play {
+    grid-template-columns: min(100%, var(--size-grid-max)) auto;
+    grid-template-areas:
+      'head    .'
+      'grid    pad'
+      'seed    pad'
+      'message pad'
+      'menu    pad';
+  }
+
+  /* The pad spans four rows, so without this it would stretch down them. */
+  .sdp-play > .sdp-pad {
+    align-self: start;
+  }
+}
+
+/* --- Focus --------------------------------------------------------------- */
+
+/* One ring everywhere: --line-ring in --pencil with a --line-gap gap. Pencil,
+   not ink, so it stays visible on an ink-filled key or button in every theme. */
+.sdp-play :focus-visible {
+  outline: var(--line-ring) solid var(--pencil);
+  outline-offset: var(--line-gap);
+}
+
+/* --- Solved -------------------------------------------------------------- */
+
+/* Every digit switches to --ink-strong, so a finished grid reads as one piece
+   of printing rather than givens plus corrections. Same specificity as
+   grid.css's `entered` rule, and this file imports that one, so source order
+   is what decides — moving the @import below this block would break it. */
+.sdp-play[data-solved] .sdp-cell {
+  color: var(--ink-strong);
+  /* The grid is read-only now, so nothing in it advertises a press. */
+  cursor: default;
+}
+
+/* --- The SOLVED sticker -------------------------------------------------- */
+
+/* Placed in the grid's own area rather than absolutely positioned, so it
+   centres on the grid at every width without a second source for its size. */
+.sdp-play[data-solved]::after {
+  content: 'Solved';
+  grid-area: grid;
+  place-self: center;
+  z-index: var(--layer-sticker);
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-sm);
+  background: var(--ink);
+  /* Display size on ink, so tint is the right label colour here. */
+  color: var(--tint);
+  font-family: var(--font-label);
+  font-weight: var(--weight-bold);
+  font-size: var(--text-xl);
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  rotate: var(--tilt-sm);
+  animation: sdp-sticker-fade var(--dur-fast) var(--ease-out);
+}
+
+@keyframes sdp-sticker-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* The one big moment of fun in the app. Reduced motion keeps the plain fade
+   above; this replaces it with the stamp for everyone else. */
+@media (prefers-reduced-motion: no-preference) {
+  .sdp-play[data-solved]::after {
+    animation: sdp-sticker-stamp var(--dur-slow) var(--ease-stamp);
+  }
+
+  @keyframes sdp-sticker-stamp {
+    from {
+      opacity: 0;
+      scale: var(--stamp-scale);
+    }
+  }
+}
+
+/* --- Button -------------------------------------------------------------- */
+
+.sdp-button {
+  min-height: var(--size-target);
+  padding: var(--space-2) var(--space-5);
+  border: var(--line-ui) solid var(--ink);
+  border-radius: var(--radius-pill);
+  background: var(--paper);
+  font-family: var(--font-text);
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-md);
+  color: var(--ink-deep);
+  cursor: pointer;
+  box-shadow: var(--shadow-rest);
+}
+
+.sdp-button:hover {
+  box-shadow: var(--shadow-hover);
+}
+
+.sdp-button:active {
+  box-shadow: var(--shadow-pressed);
+  translate: var(--press-offset) var(--press-offset);
+}
+
+.sdp-button:disabled {
+  box-shadow: none;
+  opacity: var(--opacity-muted);
+  cursor: default;
+}
+
+.sdp-button--primary {
+  background: var(--ink);
+  /* Whichever of pencil and paper this theme scores higher with. */
+  color: var(--on-ink);
+}
+
+/* Quiet: text only, and a shadow means "you can press this", so it has none. */
+.sdp-button--quiet,
+.sdp-button--quiet:hover,
+.sdp-button--quiet:active {
+  border-color: transparent;
+  background: none;
+  box-shadow: none;
+}
+
+.sdp-button--quiet:hover {
+  text-decoration: underline;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sdp-button {
+    transition:
+      box-shadow var(--dur-fast) var(--ease-out),
+      translate var(--dur-fast) var(--ease-out);
+  }
+}
+
+/* --- New game dialog ----------------------------------------------------- */
+
+.sdp-dialog {
+  margin: auto;
+  padding: var(--space-5);
+  border: var(--line-ui) solid var(--ink);
+  border-radius: var(--radius-md);
+  background: var(--paper);
+  color: var(--pencil);
+}
+
+.sdp-dialog::backdrop {
+  background: var(--pencil);
+  opacity: var(--opacity-muted);
+}
+
+.sdp-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+
+/* --- Segmented control --------------------------------------------------- */
+
+.sdp-segmented {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.sdp-segmented legend {
+  padding: 0;
+  margin-bottom: var(--space-3);
+  font-family: var(--font-label);
+  font-weight: var(--weight-bold);
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-deep);
+}
+
+.sdp-segmented label {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--size-target);
+  padding-inline: var(--space-4);
+  border: var(--line-ui) solid var(--ink);
+  border-radius: var(--radius-pill);
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-md);
+  color: var(--ink-deep);
+  cursor: pointer;
+}
+
+.sdp-segmented label + label {
+  margin-left: var(--space-2);
+}
+
+.sdp-segmented label:has(:checked) {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+
+/* The radio stays in the accessibility tree and keeps arrow-key behaviour; it
+   is only the dot that goes, because the pill already shows the choice. */
+.sdp-segmented input {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+}
+
+.sdp-segmented label:has(:focus-visible) {
+  outline: var(--line-ring) solid var(--pencil);
+  outline-offset: var(--line-gap);
+}

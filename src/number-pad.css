@@ -41,7 +41,10 @@
 
 .sdp-key[aria-pressed='true'] {
   background: var(--ink);
-  color: var(--tint);
+  /* --tint on --ink measures 2.5:1 in Clementine. --on-ink is whichever of
+     pencil and paper the theme scores higher with, so the label stays legible
+     in every theme. */
+  color: var(--on-ink);
 }
 
 @media (width >= 900px) {
