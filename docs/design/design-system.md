@@ -45,7 +45,7 @@ Three tests to run on any new screen:
 
 ## Color
 
-A theme is one ink chosen by a person, plus four colors the app computes from it. That is how the system stays colorful while players pick their own notebook colors.
+A theme is one ink chosen by a person, plus five colors derived from it. That is how the system stays colorful while players pick their own notebook colors.
 
 ### The theme model
 
@@ -56,8 +56,13 @@ A theme is one ink chosen by a person, plus four colors the app computes from it
 | `--ink-deep`   | Small text: labels, seed, links, body on tint           | `--ink` darkened until it reaches 4.5:1 on the darkest cell background | `#A34A1A`                   |
 | `--tint`       | Alternate 3×3 boxes, cover letters, selected surfaces   | 15% `--ink` over white                                                 | `#FDE9DF` _matches artwork_ |
 | `--wash`       | App background behind cards                             | 7% `--ink` over white                                                  | `#FEF5F0`                   |
+| `--on-ink`     | Labels sitting on a solid `--ink` fill                  | Whichever of `--pencil` and `--paper` scores higher against `--ink`    | `--pencil`, at 4.8:1        |
 
 The darkest cell background is `--tint` with the peer overlay on top: `#F0DED5` in Clémentine. Nothing a digit sits on is ever darker than that, so a color that passes there passes everywhere.
+
+`--on-ink` is a theme token, not a fixed one, and a theme that omits it leaves every ink-filled control with no label color at all. It exists because the rule below — the app picks whichever of `--pencil` and `--paper` scores higher on the ink — is a decision CSS cannot make at runtime. Working it out once per theme and storing the answer is what makes the rule real. It covers the primary button, the selected segment of a segmented control, and the number pad's pressed Notes key. It is not for display sizes: `--text-xl` and up on ink use `--tint`, as the cover and the SOLVED sticker do.
+
+Menthe is the honest edge case. `--pencil` on its ink measures 4.19:1, just under the 4.5:1 small text asks for; `--paper` measures 3.39:1, so pencil is the better of the two choices, which is all this rule promises. Every `--on-ink` label today is a control label at `--text-md` or larger. If Menthe ever needs to clear 4.5:1 outright, darken its ink rather than adding a third candidate color.
 
 Why three inks and not one: your orange on white measures 2.95:1. Accessibility guidelines ask for 3:1 on large text and 4.5:1 on small text. On paper this does not matter. On screen it does, so the app darkens the ink only where someone has to read it. Lines, fills and the cover keep the true orange.
 
@@ -67,12 +72,12 @@ Your cover cream measures `#FFEEE6`, about 12% ink. I recommend moving it to `--
 
 ![Four starter themes showing ink, ink-strong, ink-deep, tint and wash, with a sample grid](theme-swatches.png)
 
-| Theme                | `--ink`   | `--ink-strong` | `--ink-deep` | `--tint`  | `--wash`  |
-| -------------------- | --------- | -------------- | ------------ | --------- | --------- |
-| Clémentine (default) | `#F36F27` | `#D15F22`      | `#A34A1A`    | `#FDE9DF` | `#FEF5F0` |
-| Piscine              | `#1E6FE0` | `#1E6FE0`      | `#1A5EBE`    | `#DDE9FA` | `#EFF5FD` |
-| Menthe               | `#0E9F6E` | `#0D9164`      | `#0A724F`    | `#DBF1E9` | `#EEF8F5` |
-| Graphite             | `#2B2A33` | `#2B2A33`      | `#2B2A33`    | `#DFDFE0` | `#F0F0F1` |
+| Theme                | `--ink`   | `--ink-strong` | `--ink-deep` | `--tint`  | `--wash`  | `--on-ink`        |
+| -------------------- | --------- | -------------- | ------------ | --------- | --------- | ----------------- |
+| Clémentine (default) | `#F36F27` | `#D15F22`      | `#A34A1A`    | `#FDE9DF` | `#FEF5F0` | `--pencil`, 4.8:1 |
+| Piscine              | `#1E6FE0` | `#1E6FE0`      | `#1A5EBE`    | `#DDE9FA` | `#EFF5FD` | `--paper`, 4.8:1  |
+| Menthe               | `#0E9F6E` | `#0D9164`      | `#0A724F`    | `#DBF1E9` | `#EEF8F5` | `--pencil`, 4.2:1 |
+| Graphite             | `#2B2A33` | `#2B2A33`      | `#2B2A33`    | `#DFDFE0` | `#F0F0F1` | `--paper`, 14.2:1 |
 
 The three new inks are _proposed_; adjust them after a test print. Swap any of them and the other four columns recompute. Bonbon (pink) and Prune (violet) were dropped on 18 Sep 2026 and can return later without changing the model.
 
@@ -96,7 +101,7 @@ These never change with the theme.
 - One ink per surface. A second ink may appear only as a small, self-contained object: a sticker, a swatch, a thumbnail of another notebook.
 - Given digits are ink and bold. Entered digits are pencil and regular weight. Weight carries the difference, so it survives the Graphite theme and color blindness.
 - A cell's background is `--paper` or `--tint`, with at most `--overlay-peer` on top. States never add an ink fill to a cell; they use rings and bars instead. This is what keeps digits readable in every state.
-- Text on a solid `--ink` background uses `--tint` for display sizes, `--text-xl` and up, as on the cover. Smaller text on ink uses `--pencil` for light inks and `--paper` for dark inks. The app picks whichever scores higher.
+- Text on a solid `--ink` background uses `--tint` for display sizes, `--text-xl` and up, as on the cover. Smaller text on ink uses `--on-ink`, which each theme sets to whichever of `--pencil` and `--paper` scores higher on its ink. Never hard-code one of the two: the winner flips between themes, and `--tint` at small sizes fails everywhere (2.5:1 in Clémentine).
 - Custom inks from the color picker go through the same computation. If an ink is below 2:1 on white, the picker warns that grid lines may not print well.
 
 ```css
@@ -114,6 +119,7 @@ These never change with the theme.
   --ink-deep: #a34a1a;
   --tint: #fde9df;
   --wash: #fef5f0;
+  --on-ink: var(--pencil);
 }
 ```
 
@@ -287,6 +293,8 @@ One grid component serves all three areas of the app and the printed page. Build
 
 Priority when states overlap: selected, then conflict, then hint, then same digit, then peer.
 
+**The selected empty cell is a special case of Notes.** In `play` it becomes nine toggle targets, one per digit, so a note can be set by pointing at where it will appear. Only the set ones are drawn. The other slots are present and focusable but fully transparent, because nine faint digits in a 3×3 layout is exactly what a cell with all nine notes looks like, and every selected cell would read that way. They come up at `--opacity-muted` while the pointer is anywhere in the cell, and to full opacity under the pointer or the keyboard — a focused slot never uses `--opacity-muted`, because `opacity` composites the focus ring too and would drop it to about 2.3:1.
+
 ### Size
 
 - Width is the smaller of the container and `--size-grid-max`. Cells are always square.
@@ -395,6 +403,61 @@ Eleven more components cover the whole app. Each gets one row here; when you bui
 | Top bar           | Wordmark plus three links: Play, Learn, Print           | `wide`, `compact` (bottom tab bar on phones)                                               | Current page: `--line-box` ink underline                                                    | The wordmark in the bar is horizontal; the -15° tilt is kept for the cover and the home hero.                                                                       |
 
 Puzzle number, difficulty tag and seed label share one stylesheet, `src/components.css`. It is not a `variant` prop like the grid's: the same markup is reused at both sizes, and a `data-size` attribute on an ancestor picks the rules — `md` for the Play screen, `print` for the notebook page, sized by cap height as in Print variant above.
+
+### Button
+
+Built 19 Sep 2026, in `src/play.css`.
+
+**Anatomy.** A pill: `--radius-pill`, a `--line-ui` border in `--ink`, a label in Text `--weight-semibold` at `--text-md`, `--space-2` by `--space-5` of padding, and a minimum height of `--size-target`. The hard offset shadow is the whole affordance — it is what says you can press this.
+
+| Variant     | Fill      | Border      | Shadow | Use                                   |
+| ----------- | --------- | ----------- | ------ | ------------------------------------- |
+| `primary`   | `--ink`   | `--ink`     | Yes    | The one primary action on a screen    |
+| `secondary` | `--paper` | `--ink`     | Yes    | Everything else that is a real action |
+| `quiet`     | None      | Transparent | No     | Low-stakes actions: New game, Cancel  |
+
+`primary` takes its label from `--on-ink`; `secondary` and `quiet` use `--ink-deep`.
+
+| State    | What changes                                                                   |
+| -------- | ------------------------------------------------------------------------------ |
+| Rest     | `--shadow-rest`                                                                |
+| Hover    | `--shadow-hover`. `quiet` underlines its label instead, having no shadow       |
+| Pressed  | `--shadow-pressed`, and the button translates by `--press-offset` on both axes |
+| Focus    | The standard ring below, over whatever else is showing                         |
+| Disabled | Shadow removed, `--opacity-muted`, `cursor: default`                           |
+| Loading  | Not built. Generation shows its wait in the message line, not on a button      |
+
+The shadow and translate transition over `--dur-fast` with `--ease-out`, inside a `prefers-reduced-motion: no-preference` guard.
+
+**Accessibility.** A real `<button>` with a `type`. `--size-target` is the floor for the whole hit area, not just the text. Disabled uses the `disabled` attribute, so the button leaves the tab order rather than being a trap. The label is a verb.
+
+**Do and don't.** One `primary` per screen. Never use `quiet` for a destructive action — without a shadow it does not read as pressable enough for a decision you cannot undo.
+
+### Number pad
+
+Built 19 Sep 2026, in `src/number-pad.css` and `src/ui/number-pad.ts`.
+
+**Anatomy.** Twelve keys: 1 to 9, then Erase, Notes and Undo. Each key is `--radius-sm`, a `--line-ui` border in `--ink` on `--paper`, a label in Text `--weight-semibold`, and at least `--size-key` in both directions. `--space-2` between keys. Digit keys carry a count in the top-right corner at `--text-xs` and `--weight-regular`: how many of that digit are left to place, givens included. Utility keys drop to `--text-sm`, because their labels are words.
+
+| Variant | When                  | Layout                                                      |
+| ------- | --------------------- | ----------------------------------------------------------- |
+| `3x3`   | Below `--bp-wide`     | Three columns under the grid: 1-9, then the three utilities |
+| `row`   | At `--bp-wide` and up | Four columns beside the grid, aligned to its top edge       |
+
+| State         | Visual                                                                   |
+| ------------- | ------------------------------------------------------------------------ |
+| Rest          | Paper fill, ink border                                                   |
+| Pressed       | The key's own press feedback; the digit lands in the cell with the stamp |
+| Exhausted     | All nine placed: `--opacity-muted`, `cursor: default`, and `disabled`    |
+| Notes mode on | The Notes key fills with `--ink` and takes `--on-ink` for its label      |
+| Undo empty    | `disabled` while there is nothing to undo                                |
+| Focus         | The standard ring below                                                  |
+
+**Behaviour.** The pad is the pointer half of one input model; the keyboard is the other, and both run through the same state transitions. Notes mode is one flag: with it on, a digit key toggles an annotation instead of placing. Exhausted is computed, never set — it falls out of the remaining count reaching zero, which is also what makes a solved grid's digit keys disable themselves.
+
+**Accessibility.** Real buttons. Each digit key is labelled "5, 4 left", so the count is announced and not just seen. The Notes key is a toggle and carries `aria-pressed`. Exhausted and empty-undo keys use `disabled`.
+
+**Do and don't.** Keep the count on the key; it is the one piece of progress the screen shows, and it replaces a timer. Do not reorder the keys by what is left — a number pad people reach for without looking must not move.
 
 ### Focus, everywhere
 
