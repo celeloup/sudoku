@@ -394,6 +394,8 @@ Eleven more components cover the whole app. Each gets one row here; when you bui
 | Stepper           | Number of puzzles per side                              | None                                                                                       | Rest, min reached, max reached                                                              | Minus and plus buttons around a Numeral-font value.                                                                                                                 |
 | Top bar           | Wordmark plus three links: Play, Learn, Print           | `wide`, `compact` (bottom tab bar on phones)                                               | Current page: `--line-box` ink underline                                                    | The wordmark in the bar is horizontal; the -15° tilt is kept for the cover and the home hero.                                                                       |
 
+Puzzle number, difficulty tag and seed label share one stylesheet, `src/components.css`. It is not a `variant` prop like the grid's: the same markup is reused at both sizes, and a `data-size` attribute on an ancestor picks the rules — `md` for the Play screen, `print` for the notebook page, sized by cap height as in Print variant above.
+
 ### Focus, everywhere
 
 Every interactive element shows the same focus ring: a `--line-ring` outline in `--pencil` with a `--line-gap` gap in `--paper`. Pencil, not ink, so it is visible on ink-filled buttons and stays the same in every theme.
