@@ -77,6 +77,12 @@ function renderCell(cell: number, opts: GridOptions): HTMLElement {
     return node;
   }
 
+  node.setAttribute('role', 'gridcell');
+  // Roving tabindex: exactly one cell is in the tab order, so Tab enters and
+  // leaves the whole grid once and the arrow keys move within it. With no
+  // selection yet that is the first cell, or the grid would be unreachable.
+  node.tabIndex = cell === (opts.selected ?? 0) ? 0 : -1;
+
   if (given !== 0) {
     node.dataset.state = 'given';
     node.setAttribute('aria-readonly', 'true');
@@ -89,7 +95,7 @@ function renderCell(cell: number, opts: GridOptions): HTMLElement {
     appendSlots(node, cell, opts);
   } else if ((opts.marks?.[cell] ?? 0) !== 0) {
     node.dataset.state = 'notes';
-    node.append(renderMarks(opts.marks![cell]!));
+    appendMarks(node, opts.marks![cell]!);
   }
 
   if (cell === opts.selected) node.setAttribute('aria-selected', 'true');
@@ -136,15 +142,18 @@ function appendSlots(node: HTMLElement, cell: number, opts: GridOptions): void {
   }
 }
 
-function renderMarks(mask: number): HTMLElement {
-  const marks = document.createElement('span');
-  marks.className = 'sdp-marks';
+/**
+ * The nine marks go straight into the cell, which is itself the 3x3 layout. A
+ * wrapper element would be a single item in that layout and collapse into the
+ * top-left ninth, which is exactly what it used to do.
+ */
+function appendMarks(node: HTMLElement, mask: number): void {
   for (let d = 1; d <= SIZE; d++) {
-    const slot = document.createElement('span');
-    slot.textContent = mask & bit(d) ? String(d) : '';
-    marks.append(slot);
+    const mark = document.createElement('span');
+    mark.className = 'sdp-mark';
+    mark.textContent = mask & bit(d) ? String(d) : '';
+    node.append(mark);
   }
-  return marks;
 }
 
 function describeCell(cell: number, given: number, entry: number, opts: GridOptions): string {

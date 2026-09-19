@@ -1,5 +1,15 @@
 import type { Difficulty, Puzzle } from '../engine';
 
+const DIFFICULTIES: readonly Difficulty[] = ['easy', 'medium', 'hard', 'expert'];
+
+/**
+ * A difficulty arriving from outside the type system — a query string, a form
+ * field — checked rather than cast, falling back to the middle tier.
+ */
+export function toDifficulty(value: unknown): Difficulty {
+  return DIFFICULTIES.find((d) => d === value) ?? 'medium';
+}
+
 export interface GenerateRequest {
   difficulty: Difficulty;
   seed?: string;

@@ -45,6 +45,9 @@
   font-size: var(--display-md);
 }
 
+/* Small bold labels on screen take --ink-deep, which is the token defined to
+   clear 4.5:1 on the darkest cell background. --ink itself measures 2.95:1. */
+[data-size='md'] .sdp-no,
 [data-size='md'] .sdp-difficulty,
 [data-size='md'] .sdp-seed {
   color: var(--ink-deep);

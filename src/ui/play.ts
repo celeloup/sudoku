@@ -1,7 +1,7 @@
 import { CELLS, SIZE, type Difficulty } from '../engine';
 import { renderGrid } from './grid';
 import { renderPad } from './number-pad';
-import { requestPuzzle } from './generate';
+import { requestPuzzle, toDifficulty } from './generate';
 import {
   conflicts,
   createPlayState,
@@ -36,21 +36,28 @@ const WAITING = 'Building a puzzle. Expert can take a few seconds.';
 const SOLVED = 'Solved. Every digit is in place.';
 
 /**
- * Records which annotation slot has focus, if any, so a re-render can restore
- * it. Only the selected cell ever renders slots, so the digit identifies the
- * slot on its own — the cell index the old harness also carried was redundant
- * the moment the grid stopped drawing slots in unselected cells.
+ * Records where focus sits inside the grid, if it does, so a re-render can put
+ * it back. Only the selected cell ever renders slots, so the digit identifies
+ * the slot on its own — the cell index the old harness also carried was
+ * redundant the moment the grid stopped drawing slots in unselected cells.
+ * `'cell'` means the roving-tabindex cell itself, wherever it has moved to.
  */
-function describeFocus(): number | null {
+type Focus = number | 'cell' | null;
+
+function describeFocus(): Focus {
   const el = document.activeElement;
-  if (!(el instanceof HTMLElement) || !el.classList.contains('sdp-slot')) return null;
+  if (!(el instanceof HTMLElement)) return null;
+  if (el.classList.contains('sdp-cell')) return 'cell';
+  if (!el.classList.contains('sdp-slot')) return null;
   const digit = Number(el.dataset.digit);
   return Number.isInteger(digit) ? digit : null;
 }
 
-function restoreFocus(digit: number | null): void {
-  if (digit === null) return;
-  gridEl.querySelector<HTMLButtonElement>(`.sdp-slot[data-digit="${String(digit)}"]`)?.focus();
+function restoreFocus(focus: Focus): void {
+  if (focus === null) return;
+  const selector =
+    focus === 'cell' ? '.sdp-cell[tabindex="0"]' : `.sdp-slot[data-digit="${String(focus)}"]`;
+  gridEl.querySelector<HTMLElement>(selector)?.focus();
 }
 
 /**
@@ -66,10 +73,8 @@ function locked(): boolean {
 /** Every board mutation goes through here, so undo can never miss one. */
 function act(mutate: () => void): void {
   if (!state || locked()) return;
-  const focused = describeFocus();
   if (commit(history, state, mutate)) {
     draw();
-    restoreFocus(focused);
     syncSolved();
   }
 }
@@ -94,8 +99,14 @@ function syncSolved(): void {
   }
 }
 
+/**
+ * Re-renders the grid and the pad. Every render replaces the elements, so the
+ * one place that can put focus back is here: capture before, restore after.
+ * That covers a click, a keystroke and an arrow move alike.
+ */
 function draw(): void {
   if (!state) return;
+  const focused = describeFocus();
   renderGrid(gridEl, {
     variant: 'play',
     givens: state.puzzle.givens,
@@ -126,14 +137,18 @@ function draw(): void {
     onErase: () => {
       eraseSelected();
     },
-    onToggleNotes: () => {
-      notes = !notes;
-      draw();
-    },
+    onToggleNotes: toggleNotes,
     onUndo: () => {
       performUndo();
     },
   });
+  restoreFocus(focused);
+}
+
+/** Shared by the pad's Notes key and the `N` shortcut: one piece of state. */
+function toggleNotes(): void {
+  notes = !notes;
+  draw();
 }
 
 /** The one place the notes toggle decides which state transition runs. */
@@ -181,15 +196,6 @@ async function newGame(difficulty: Difficulty, seed?: string): Promise<void> {
   draw();
 }
 
-const DIFFICULTIES: readonly string[] = ['easy', 'medium', 'hard', 'expert'];
-
-/** The radio value crosses a DOM boundary untyped, so it is checked, not cast. */
-function toDifficulty(value: FormDataEntryValue | null): Difficulty {
-  return typeof value === 'string' && DIFFICULTIES.includes(value)
-    ? (value as Difficulty)
-    : 'medium';
-}
-
 menuEl.addEventListener('click', () => {
   dialogEl.showModal();
 });
@@ -221,6 +227,19 @@ document.addEventListener('keydown', (event) => {
   // grid accepts neither. Undo, above, is what gets you back out of it.
   if (locked()) return;
 
+  // The two shortcuts that do not need a selection.
+  if (event.key.toLowerCase() === 'n' && !event.metaKey && !event.ctrlKey && !event.altKey) {
+    event.preventDefault();
+    toggleNotes();
+    return;
+  }
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    selected = null;
+    draw();
+    return;
+  }
+
   if (selected === null) return;
 
   const moves: Record<string, number> = {
@@ -236,13 +255,10 @@ document.addEventListener('keydown', (event) => {
     if (next >= 0 && next < CELLS) {
       // Horizontal moves must not wrap across rows.
       if (Math.abs(delta) === 1 && Math.floor(next / SIZE) !== Math.floor(selected / SIZE)) return;
-      // The old cell's slot for this digit no longer exists after the move, so
-      // restore focus to the same digit position in the newly selected cell
-      // rather than the (now gone) element itself.
-      const focused = describeFocus();
+      // `draw` carries focus across: the same digit position in the newly
+      // selected cell, or the cell itself, since the old elements are gone.
       selected = next;
       draw();
-      restoreFocus(focused);
     }
     return;
   }
@@ -268,14 +284,13 @@ document.addEventListener('keydown', (event) => {
   if (digitKey !== '') {
     const digit = Number(digitKey);
     const cell = selected;
+    // A bare digit follows notes mode, so the keyboard and the pad agree;
+    // Shift is the explicit override that always writes a note.
     if (event.shiftKey)
       act(() => {
         toggleAnnotation(state!, cell, digit);
       });
-    else
-      act(() => {
-        placeDigit(state!, cell, digit);
-      });
+    else enter(digit);
   }
 });
 

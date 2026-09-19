@@ -119,6 +119,6 @@
 
   .sdp-page,
   .sdp-sheet {
-    outline: 1px solid var(--ink-deep);
+    outline: var(--line-cell) solid var(--ink-deep);
   }
 }
