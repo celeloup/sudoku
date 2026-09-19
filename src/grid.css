@@ -1,0 +1,131 @@
+/* The one grid component: play, static and print. Lines are grid tracks, so
+   every cell pitch is identical; see the Play screen design doc. */
+
+.sdp-grid {
+  --tracks: var(--line-box) 1fr var(--line-cell) 1fr var(--line-cell) 1fr var(--line-box) 1fr
+    var(--line-cell) 1fr var(--line-cell) 1fr var(--line-box) 1fr var(--line-cell) 1fr
+    var(--line-cell) 1fr var(--line-box);
+
+  display: grid;
+  grid-template-columns: var(--tracks);
+  grid-template-rows: var(--tracks);
+  aspect-ratio: 1;
+  container-type: inline-size;
+  background: var(--ink);
+  print-color-adjust: exact;
+}
+
+.sdp-row {
+  display: contents;
+}
+
+.sdp-cell {
+  /* Declared on the cell, never on the grid: container query units resolve
+     against the nearest ANCESTOR container, so on .sdp-grid itself this would
+     measure whatever encloses the grid. */
+  --cell: calc(100cqi / 9);
+
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: var(--paper);
+  font-family: var(--font-text);
+  font-weight: var(--weight-bold);
+  font-size: calc(var(--cell) * var(--digit-scale));
+  font-size-adjust: cap-height var(--cap-ratio);
+  font-variant-numeric: tabular-nums lining-nums;
+  line-height: 1;
+  color: var(--ink-strong);
+}
+
+.sdp-cell[data-box='tint'] {
+  background: var(--tint);
+}
+
+/* States, in priority order: peer, same digit, hint, conflict, selected. All
+   have equal specificity, so source order is what decides. */
+
+.sdp-cell[data-state='entered'] {
+  font-weight: var(--weight-regular);
+  color: var(--pencil);
+}
+
+.sdp-cell[data-peer] {
+  background-image: linear-gradient(var(--overlay-peer), var(--overlay-peer));
+}
+
+.sdp-cell[data-same] {
+  box-shadow: inset 0 calc(var(--line-ring) * -1) 0 var(--ink);
+}
+
+.sdp-cell[data-hint] {
+  box-shadow: inset 0 0 0 var(--line-ui) var(--ink-deep);
+}
+
+.sdp-cell[aria-invalid='true'] {
+  color: var(--correction);
+}
+
+/* The non-color cue for a conflict. */
+.sdp-cell[aria-invalid='true']::after {
+  content: '';
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  width: calc(var(--cell) * 0.18);
+  aspect-ratio: 1;
+  background: var(--correction);
+  clip-path: polygon(100% 0, 100% 100%, 0 0);
+}
+
+.sdp-cell[aria-selected='true'] {
+  box-shadow: inset 0 0 0 var(--line-ring) var(--ink);
+}
+
+/* Notes: digit n always sits in position n. */
+.sdp-marks,
+.sdp-cell[data-state='notes'] {
+  display: grid;
+  grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+  width: 100%;
+  height: 100%;
+}
+
+.sdp-marks > span,
+.sdp-slot {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--font-text);
+  font-weight: var(--weight-medium);
+  font-size: calc(var(--cell) * var(--note-scale));
+  color: var(--pencil-soft);
+}
+
+.sdp-slot--set {
+  color: var(--pencil);
+}
+
+/* Variants */
+
+.sdp-grid[data-variant='play'] {
+  width: min(100%, var(--size-grid-max));
+}
+
+.sdp-grid[data-variant='print'] {
+  /* Line weights belong to the variant, not to @media print: a print grid
+     previewed on a monitor has to measure the same. */
+  --line-cell: 0.7pt;
+  --line-box: 1.45pt;
+
+  width: var(--print-grid);
+}
+
+/* Print takes the true ink; --ink-strong exists for screen contrast only. */
+.sdp-grid[data-variant='print'] .sdp-cell {
+  color: var(--ink);
+}

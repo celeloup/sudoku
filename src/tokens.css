@@ -98,7 +98,6 @@
   --page-safe: 4mm;
   --page-binding: 12mm;
   --print-grid: 65.4mm;
-  --print-cell: calc(var(--print-grid) / 9);
   --print-gap: 2.2mm;
 
   /* Print type, measured as cap height — which is what a ruler measures.
