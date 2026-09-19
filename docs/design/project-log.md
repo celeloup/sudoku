@@ -32,7 +32,7 @@ Decided on 19 Sep 2026, while building the print grid.
 
 1. Done, 19 Sep 2026. The tokens are in `src/tokens.css`, including the print geometry the Print spec had measured but never named.
 2. Built, 19 Sep 2026: the grid's `print` variant and the A7 page around it, at `src/print.html`. **The test print has not been run yet** — every value below is measured in a browser, not with a ruler on paper.
-3. Add the `play` states, then the number pad and the button.
+3. Done, 19 Sep 2026. The `play` grid states, the number pad, the button and the Play screen itself, at `src/index.html`, `src/play.css` and `src/ui/play.ts`. The old engine harness (`src/ui/main.ts`, `src/ui/board.ts`, `src/styles.css`) is gone. Puzzle generation moved into a Web Worker on the way, so the screen stays responsive through Hard's multi-second tail.
 4. Build the Print screen. It exercises the theme model end to end.
 5. Everything else.
 
@@ -99,12 +99,29 @@ Not in the inventory yet: dialog, inline message and toast, text and color input
 - Layout rules for screens: columns, breakpoints, maximum widths.
 - Voice and tone: how the app speaks in French and in English, with examples.
 - A dark mode decision.
-- Proof. No token has been used in a real screen yet, and the three new inks have not been printed.
+- ~~Proof. No token has been used in a real screen yet~~ — **closed, 19 Sep 2026.** The three new inks still have not been printed.
 
 ### Priority actions
 
 1. Done. Contrast: `--ink-strong`, `--ink-deep` and `--pencil-soft` are now computed against the darkest cell background. Same-digit is a bar, not a fill. Clémentine `--ink-strong` moved from `#DD6523` to `#D15F22`.
 2. Done. Naming: color tokens are a stated exception, step conventions are written down, `--radius-0` became `--radius-none`, the Encre theme became Graphite, and the object is a notebook, never a booklet. Raw values became 20 new tokens for sizes, layers, lines, weights, scales, opacity and motion.
-3. Build the grid and one full screen, Play, from the tokens. Whatever feels wrong there is the real audit.
+3. Done, 19 Sep 2026. See "What the Play screen proved" below.
 4. Draw the components, in Figma or in code, so each has a picture next to its rules.
 5. Expand components to the grid's level of detail as you build them, not before.
+
+## What the Play screen proved, 19 Sep 2026
+
+Priority action 3 said: build the grid and one full screen from the tokens, and whatever feels wrong there is the real audit. It is built. This is what it found.
+
+**The theme model holds.** A whole screen — grid, number pad, buttons, dialog, sticker, message — is drawn without a single raw value outside `src/tokens.css`. Changing `data-theme` on `<html>` recolors all of it. The audit's largest open item, "no token has been used in a real screen yet", is closed.
+
+**It found one hole in the model.** The Color rule said the app picks whichever of `--pencil` and `--paper` scores higher on an ink fill, but CSS cannot compute that at runtime, and the number pad had shipped with `--tint` on `--ink` at 2.5:1. The fix is `--on-ink`, a sixth theme token holding the per-theme answer. A rule the code cannot express is not a rule; this is the kind of thing only a built screen surfaces.
+
+**Two gaps in the grid's spec surfaced too.**
+
+- The Notes state described a cell with marks, but not a selected empty cell offering nine toggle targets. Drawn literally, every selected cell read as "all nine noted". The cell states table now says what an empty selected cell shows.
+- The Solved row was written and then half-built: the sticker landed, but the digits did not turn `--ink-strong` and the grid still took input. Both are done now, and `isComplete` gates every mutation through one guard, with undo as the deliberate way back out.
+
+**The fonts were not actually ready.** Only `inter-700.woff2` was subsetted. A family declared at one weight answers every weight request with it, which would have erased the given-versus-entered distinction — the one difference that survives the Graphite theme and color blindness. Inter 400, 500 and 600 are now in `src/fonts/`.
+
+**Still open after this screen:** dark mode, drawings of components, voice and tone, and the test print. The remaining nine components keep their one-row entries until they are built.
