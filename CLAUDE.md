@@ -82,3 +82,21 @@ alone turned out to admit extra deductions, or to assert something true for the 
 reason.
 
 `renderBoard` is intentionally not unit-tested; it is verified by hand in a browser.
+
+## Design system
+
+The design system for Sudoku de poche lives in `docs/design/`. It is the authority for every visual decision.
+
+- `docs/design/design-system.md`: principles, tokens, components, patterns, print spec. Read it before writing or changing any UI.
+- `docs/design/print-production.md`: how the printed A7 notebook is produced and checked.
+- `docs/design/project-log.md`: decisions already made, the last audit, and the build order.
+
+Rules when working on UI:
+
+- Never invent a color, font, size, radius, shadow or duration. Use a token from `design-system.md`. If no token fits, stop and propose a new token instead of hardcoding a value.
+- No raw values outside the token file. Components reference CSS custom properties only.
+- Fonts are fixed: Agdasima, Akatab, Inter, JetBrains Mono, self-hosted. Do not substitute or add fonts.
+- Identity is fixed: flat ink, hard offset shadows, no gradients, no blur, one ink per surface. Do not add a new aesthetic direction.
+- Follow the build order in `project-log.md`. Start with the tokens file, then the grid component.
+- When a component is built or changed, update its entry in `design-system.md` in the same change.
+- When the code and the doc disagree, say so and ask which one is right. Do not silently pick one.
