@@ -1,0 +1,87 @@
+/* Puzzle number, difficulty tag and seed label. One set of components, two
+   sizes: `md` on screen, `print` on paper. */
+
+.sdp-no,
+.sdp-numeral,
+.sdp-difficulty,
+.sdp-seed {
+  line-height: 1;
+  color: var(--ink);
+}
+
+.sdp-no,
+.sdp-difficulty {
+  font-family: var(--font-label);
+  font-weight: var(--weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.sdp-numberline {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.sdp-numeral {
+  font-family: var(--font-numeral);
+  font-weight: var(--weight-regular);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.sdp-seed {
+  font-family: var(--font-code);
+  text-align: right;
+}
+
+/* Screen. Sizes come from the type scale, not from cap heights. */
+
+[data-size='md'] .sdp-no,
+[data-size='md'] .sdp-difficulty {
+  font-size: var(--text-sm);
+}
+
+[data-size='md'] .sdp-numeral {
+  font-size: var(--display-md);
+}
+
+[data-size='md'] .sdp-difficulty,
+[data-size='md'] .sdp-seed {
+  color: var(--ink-deep);
+}
+
+[data-size='md'] .sdp-seed {
+  font-size: var(--text-xs);
+}
+
+/* Print. Sized by cap height, which is what a ruler measures. */
+
+[data-size='print'] .sdp-no,
+[data-size='print'] .sdp-numeral,
+[data-size='print'] .sdp-difficulty,
+[data-size='print'] .sdp-seed {
+  text-box: trim-both cap alphabetic;
+}
+
+[data-size='print'] .sdp-no,
+[data-size='print'] .sdp-difficulty {
+  font-size: calc(var(--print-cap-label) / var(--cap-ratio));
+  font-size-adjust: cap-height var(--cap-ratio);
+}
+
+[data-size='print'] .sdp-no {
+  margin-bottom: calc(var(--print-gap) / 2);
+}
+
+[data-size='print'] .sdp-numeral {
+  font-size: calc(var(--print-cap-number) / var(--cap-ratio));
+  font-size-adjust: cap-height var(--cap-ratio);
+}
+
+[data-size='print'] .sdp-seed {
+  /* Trimmed to the descender, not the baseline: the safe line is a clearance
+     rule and the seed alphabet still contains p, q and y. */
+  text-box: trim-both cap text;
+  margin-top: var(--print-gap);
+  font-size: var(--print-seed);
+}

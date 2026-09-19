@@ -4,6 +4,7 @@
 
 @import './tokens.css';
 @import './grid.css';
+@import './components.css';
 
 @font-face {
   font-family: 'Agdasima';
@@ -67,59 +68,6 @@
 .sdp-head {
   margin-top: auto;
   margin-bottom: var(--print-gap);
-}
-
-/* --- Type ---------------------------------------------------------------- */
-
-/* Trimming to cap/baseline makes every margin below a measured distance
-   between ink, not between invisible line boxes. Chromium-only for now;
-   elsewhere the gaps inherit half-leading and run a few tenths large. */
-.sdp-no,
-.sdp-numeral,
-.sdp-difficulty,
-.sdp-seed {
-  line-height: 1;
-  text-box: trim-both cap alphabetic;
-  color: var(--ink);
-}
-
-.sdp-no,
-.sdp-difficulty {
-  font-family: var(--font-label);
-  font-weight: var(--weight-bold);
-  font-size: calc(var(--print-cap-label) / var(--cap-ratio));
-  font-size-adjust: cap-height var(--cap-ratio);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.sdp-no {
-  margin-bottom: calc(var(--print-gap) / 2);
-}
-
-.sdp-numberline {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-}
-
-.sdp-numeral {
-  font-family: var(--font-numeral);
-  font-weight: var(--weight-regular);
-  font-size: calc(var(--print-cap-number) / var(--cap-ratio));
-  font-size-adjust: cap-height var(--cap-ratio);
-  font-variant-numeric: tabular-nums lining-nums;
-}
-
-.sdp-seed {
-  /* Trimmed to the descender, not the baseline: the safe line is a clearance
-     rule, and a seed containing p, q or y would cross it otherwise. Using the
-     font's descent rather than the actual glyphs keeps it seed-independent. */
-  text-box: trim-both cap text;
-  margin-top: var(--print-gap);
-  font-family: var(--font-code);
-  font-size: var(--print-seed);
-  text-align: right;
 }
 
 /* --- The sheet ------------------------------------------------------------ */

@@ -10,6 +10,7 @@ const DIFFICULTIES: readonly Difficulty[] = ['easy', 'medium', 'hard', 'expert']
 export function renderPage(puzzle: Puzzle, number: number): HTMLElement {
   const page = document.createElement('article');
   page.className = 'sdp-page';
+  page.dataset.size = 'print';
 
   const head = document.createElement('header');
   head.className = 'sdp-head';
