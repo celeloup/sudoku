@@ -1,4 +1,5 @@
-import { BOXES, generatePuzzle, type Difficulty, type Puzzle } from '../engine';
+import { generatePuzzle, type Difficulty, type Puzzle } from '../engine';
+import { renderGrid } from './grid';
 
 const DIFFICULTIES: readonly Difficulty[] = ['easy', 'medium', 'hard', 'expert'];
 
@@ -24,25 +25,11 @@ export function renderPage(puzzle: Puzzle, number: number): HTMLElement {
   );
 
   const grid = document.createElement('div');
-  grid.className = 'sdp-grid';
-  grid.dataset.variant = 'print';
-  // A printed grid is a picture of a puzzle, not a widget: no grid role, no
-  // focus, nothing to announce. The play variant carries the ARIA.
-  grid.setAttribute('role', 'img');
-  grid.setAttribute('aria-label', `Sudoku ${String(number)}, ${puzzle.difficulty}`);
-
-  // Boxes nest so the two line weights can be gaps. Reading order, so the
-  // four edge-centre boxes -- 1, 3, 5, 7 -- are the tinted ones.
-  for (let b = 0; b < BOXES.length; b++) {
-    const box = document.createElement('div');
-    box.className = 'sdp-box';
-    box.dataset.box = b % 2 === 1 ? 'tint' : 'paper';
-    for (const c of BOXES[b]!) {
-      const given = puzzle.givens[c]!;
-      box.append(el('div', 'sdp-cell', given === 0 ? '' : String(given)));
-    }
-    grid.append(box);
-  }
+  renderGrid(grid, {
+    variant: 'print',
+    givens: puzzle.givens,
+    label: `Sudoku ${String(number)}, ${puzzle.difficulty}`,
+  });
 
   page.append(head, grid, el('div', 'sdp-seed', puzzle.seed));
   return page;

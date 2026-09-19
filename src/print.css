@@ -3,6 +3,7 @@
    under the binding zone is whatever is left over, never a chosen number. */
 
 @import './tokens.css';
+@import './grid.css';
 
 @font-face {
   font-family: 'Agdasima';
@@ -119,50 +120,6 @@
   font-family: var(--font-code);
   font-size: var(--print-seed);
   text-align: right;
-}
-
-/* --- The grid, print variant --------------------------------------------- */
-
-/* Lines are the ink background showing through the gaps, not borders. A
-   1.45pt border would eat 0.26mm out of the columns it sits on and leave the
-   three boxes measurably unequal; a gap takes its width from the whole. */
-.sdp-grid[data-variant='print'] {
-  --line-cell: 0.7pt;
-  --line-box: 1.45pt;
-
-  box-sizing: border-box;
-  width: var(--print-grid);
-  aspect-ratio: 1;
-  display: grid;
-  grid-template: repeat(3, 1fr) / repeat(3, 1fr);
-  gap: var(--line-box);
-  padding: var(--line-box);
-  background: var(--ink);
-  print-color-adjust: exact;
-}
-
-.sdp-grid[data-variant='print'] .sdp-box {
-  display: grid;
-  grid-template: repeat(3, 1fr) / repeat(3, 1fr);
-  gap: var(--line-cell);
-}
-
-.sdp-grid[data-variant='print'] .sdp-cell {
-  display: grid;
-  place-items: center;
-  background: var(--paper);
-  font-family: var(--font-text);
-  font-weight: var(--weight-bold);
-  font-size: calc(var(--print-cell) * var(--digit-scale));
-  font-size-adjust: cap-height var(--cap-ratio);
-  font-variant-numeric: tabular-nums lining-nums;
-  line-height: 1;
-  /* Print takes the true ink. --ink-strong exists for screen contrast only. */
-  color: var(--ink);
-}
-
-.sdp-grid[data-variant='print'] .sdp-box[data-box='tint'] .sdp-cell {
-  background: var(--tint);
 }
 
 /* --- The sheet ------------------------------------------------------------ */

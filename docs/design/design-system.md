@@ -467,7 +467,7 @@ The values in the tables below were measured before they were named. These are t
 | `--page-safe`            | 4 mm               | Left, right and bottom                                |
 | `--page-binding`         | 12 mm              | Top. Nothing printed                                  |
 | `--print-grid`           | 65.4 mm            | The grid, centred on the trim                         |
-| `--print-cell`           | `--print-grid` ÷ 9 | Cell pitch                                            |
+| `--cell`                 | `--print-grid` ÷ 9 | Cell pitch                                            |
 | `--print-gap`            | 2.2 mm             | Grid to seed, and number to grid                      |
 | `--cap-ratio`            | 0.72               | The cap-height metric every print size is set against |
 | `--print-cap-number`     | 10.6 mm            | Puzzle number, cap height                             |
