@@ -84,16 +84,20 @@
   box-shadow: inset 0 0 0 var(--line-ring) var(--ink);
 }
 
-/* Notes: digit n always sits in position n. */
-.sdp-marks,
+/* Notes: digit n always sits in position n. The cell itself is the 3x3 layout
+   and the marks and slots are its direct children -- a wrapper around them
+   would be one item in this layout and collapse into the top-left ninth.
+   `place-items: stretch` overrides the cell's own centring so each child fills
+   its ninth: for a slot that ninth is the click target the design promises. */
 .sdp-cell[data-state='notes'] {
   display: grid;
   grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+  place-items: stretch;
   width: 100%;
   height: 100%;
 }
 
-.sdp-marks > span,
+.sdp-mark,
 .sdp-slot {
   display: grid;
   place-items: center;

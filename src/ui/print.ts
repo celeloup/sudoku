@@ -1,7 +1,6 @@
-import { generatePuzzle, type Difficulty, type Puzzle } from '../engine';
+import { generatePuzzle, type Puzzle } from '../engine';
 import { renderGrid } from './grid';
-
-const DIFFICULTIES: readonly Difficulty[] = ['easy', 'medium', 'hard', 'expert'];
+import { toDifficulty } from './generate';
 
 /**
  * One printed puzzle page: number block, grid, seed. No states, no shadows,
@@ -64,15 +63,11 @@ function el(tag: string, className: string, text?: string, ...children: Node[]):
   return node;
 }
 
-function difficultyFrom(value: string | null): Difficulty {
-  return DIFFICULTIES.find((d) => d === value) ?? 'medium';
-}
-
 // ponytail: generation blocks the main thread, so a run of hard pages freezes
 // the tab for seconds. This is a proofing page; the Web Worker lands with the
 // real Print screen.
 const params = new URLSearchParams(location.search);
-const difficulty = difficultyFrom(params.get('difficulty'));
+const difficulty = toDifficulty(params.get('difficulty'));
 const count = Math.min(Math.max(Number(params.get('n')) || 2, 1), 16);
 const seed = params.get('seed') ?? undefined;
 
