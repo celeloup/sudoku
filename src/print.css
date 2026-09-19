@@ -1,0 +1,219 @@
+/* The printed puzzle page. The reference design: the screen follows it.
+   Layout resolves from the bottom safe line upwards, so the blank thumb band
+   under the binding zone is whatever is left over, never a chosen number. */
+
+@import './tokens.css';
+
+@font-face {
+  font-family: 'Agdasima';
+  src: url('./fonts/agdasima-400.woff2') format('woff2');
+  font-weight: 400;
+  font-display: block;
+}
+@font-face {
+  font-family: 'Akatab';
+  src: url('./fonts/akatab-700.woff2') format('woff2');
+  font-weight: 700;
+  font-display: block;
+}
+@font-face {
+  font-family: 'Inter';
+  src: url('./fonts/inter-700.woff2') format('woff2');
+  font-weight: 700;
+  font-display: block;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('./fonts/jetbrains-mono-400.woff2') format('woff2');
+  font-weight: 400;
+  font-display: block;
+}
+
+@page {
+  size: 74mm 105mm; /* --page-w --page-h; @page cannot read a custom property */
+  margin: 0;
+}
+
+/* --- The page ------------------------------------------------------------ */
+
+.sdp-page {
+  box-sizing: border-box;
+  width: var(--page-w);
+  height: var(--page-h);
+  padding-top: var(--page-binding);
+  padding-bottom: var(--page-safe);
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  /* Without this the tinted boxes vanish in the print dialog's default. */
+  print-color-adjust: exact;
+  break-after: page;
+}
+
+.sdp-page:last-child {
+  break-after: auto;
+}
+
+/* One column, the width of the grid, centred on the trim. Everything on the
+   page hangs off a grid edge: the number off the left, the seed off the
+   right. 4.3mm of side margin falls out of it, clearing the 4mm safe line. */
+.sdp-page > * {
+  width: var(--print-grid);
+  margin-inline: auto;
+}
+
+/* The leftover height collects above the number block: the thumb band. */
+.sdp-head {
+  margin-top: auto;
+  margin-bottom: var(--print-gap);
+}
+
+/* --- Type ---------------------------------------------------------------- */
+
+/* Trimming to cap/baseline makes every margin below a measured distance
+   between ink, not between invisible line boxes. Chromium-only for now;
+   elsewhere the gaps inherit half-leading and run a few tenths large. */
+.sdp-no,
+.sdp-numeral,
+.sdp-difficulty,
+.sdp-seed {
+  line-height: 1;
+  text-box: trim-both cap alphabetic;
+  color: var(--ink);
+}
+
+.sdp-no,
+.sdp-difficulty {
+  font-family: var(--font-label);
+  font-weight: var(--weight-bold);
+  font-size: calc(var(--print-cap-label) / var(--cap-ratio));
+  font-size-adjust: cap-height var(--cap-ratio);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.sdp-no {
+  margin-bottom: calc(var(--print-gap) / 2);
+}
+
+.sdp-numberline {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.sdp-numeral {
+  font-family: var(--font-numeral);
+  font-weight: var(--weight-regular);
+  font-size: calc(var(--print-cap-number) / var(--cap-ratio));
+  font-size-adjust: cap-height var(--cap-ratio);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.sdp-seed {
+  /* Trimmed to the descender, not the baseline: the safe line is a clearance
+     rule, and a seed containing p, q or y would cross it otherwise. Using the
+     font's descent rather than the actual glyphs keeps it seed-independent. */
+  text-box: trim-both cap text;
+  margin-top: var(--print-gap);
+  font-family: var(--font-code);
+  font-size: var(--print-seed);
+  text-align: right;
+}
+
+/* --- The grid, print variant --------------------------------------------- */
+
+/* Lines are the ink background showing through the gaps, not borders. A
+   1.45pt border would eat 0.26mm out of the columns it sits on and leave the
+   three boxes measurably unequal; a gap takes its width from the whole. */
+.sdp-grid[data-variant='print'] {
+  --line-cell: 0.7pt;
+  --line-box: 1.45pt;
+
+  box-sizing: border-box;
+  width: var(--print-grid);
+  aspect-ratio: 1;
+  display: grid;
+  grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+  gap: var(--line-box);
+  padding: var(--line-box);
+  background: var(--ink);
+  print-color-adjust: exact;
+}
+
+.sdp-grid[data-variant='print'] .sdp-box {
+  display: grid;
+  grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+  gap: var(--line-cell);
+}
+
+.sdp-grid[data-variant='print'] .sdp-cell {
+  display: grid;
+  place-items: center;
+  background: var(--paper);
+  font-family: var(--font-text);
+  font-weight: var(--weight-bold);
+  font-size: calc(var(--print-cell) * var(--digit-scale));
+  font-size-adjust: cap-height var(--cap-ratio);
+  font-variant-numeric: tabular-nums lining-nums;
+  line-height: 1;
+  /* Print takes the true ink. --ink-strong exists for screen contrast only. */
+  color: var(--ink);
+}
+
+.sdp-grid[data-variant='print'] .sdp-box[data-box='tint'] .sdp-cell {
+  background: var(--tint);
+}
+
+/* --- The sheet ------------------------------------------------------------ */
+
+/* Home printing imposes pages onto A4 here rather than in the print dialog,
+   whose "pages per sheet" scales them and voids every printed measurement. */
+
+.sdp-sheet {
+  box-sizing: border-box;
+  width: var(--sheet-w);
+  height: var(--sheet-h);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--paper);
+  print-color-adjust: exact;
+  break-after: page;
+}
+
+.sdp-sheet:last-child {
+  break-after: auto;
+}
+
+.sdp-block {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--sheet-cols), var(--page-w));
+}
+
+/* The sheet breaks pages now, so the pages on it stop doing so. */
+.sdp-sheet .sdp-page {
+  break-after: auto;
+}
+
+/* --- Screen preview ------------------------------------------------------ */
+
+/* On paper the page has no edge of its own; on screen it needs one, or the
+   4mm safe margin is impossible to judge. Outline, so it costs no layout. */
+@media screen {
+  body {
+    margin: 0;
+    padding: var(--space-6) var(--space-4);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-6);
+    justify-content: center;
+    background: var(--wash);
+  }
+
+  .sdp-page,
+  .sdp-sheet {
+    outline: 1px solid var(--ink-deep);
+  }
+}
