@@ -1,6 +1,7 @@
 import { generatePuzzle, type Puzzle } from '../engine';
 import { renderGrid } from './grid';
 import { toDifficulty } from './generate';
+import './register-sw';
 
 /**
  * One printed puzzle page: number block, grid, seed. No states, no shadows,

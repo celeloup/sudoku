@@ -12,7 +12,7 @@ export default defineConfig(
   {
     languageOptions: {
       parserOptions: {
-        projectService: { allowDefaultProject: ['eslint.config.js'] },
+        projectService: { allowDefaultProject: ['eslint.config.js', 'src/public/sw.js'] },
         tsconfigRootDir: String(import.meta.dirname),
       },
     },
@@ -49,6 +49,15 @@ export default defineConfig(
           ],
         },
       ],
+    },
+  },
+  {
+    // The service worker is plain JS shipped verbatim from public/, so it is
+    // outside the TS program and runs in the worker global scope.
+    files: ['src/public/sw.js'],
+    extends: [tseslint.configs.disableTypeChecked],
+    languageOptions: {
+      globals: { self: 'readonly', caches: 'readonly', fetch: 'readonly', URL: 'readonly' },
     },
   },
   {
