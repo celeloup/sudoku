@@ -2,7 +2,10 @@
    The only file allowed to hold raw values. See design-system.md. */
 
 :root {
-  /* Color — fixed */
+  /* Color — fixed.
+     --paper is duplicated as `background_color` in public/manifest.webmanifest,
+     and Clémentine's --ink as `theme_color` there and in both HTML heads.
+     A manifest cannot read a custom property. Change the ink, change all three. */
   --paper: #ffffff;
   --pencil: #2b2a33;
   --pencil-soft: #5c5b66;

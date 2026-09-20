@@ -473,6 +473,19 @@ Built 19 Sep 2026, in `src/number-pad.css` and `src/ui/number-pad.ts`.
 
 **Do and don't.** Keep the count on the key; it is the one piece of progress the screen shows, and it replaces a timer. Do not reorder the keys by what is left — a number pad people reach for without looking must not move.
 
+### App icon and install
+
+The app is installable. `src/public/manifest.webmanifest` describes it; the icons live beside it in `src/public/` and are copied to the site root unhashed, because a manifest and a service worker are identified by a stable path.
+
+| File                    | Size      | Where it is used                                                          |
+| ----------------------- | --------- | ------------------------------------------------------------------------- |
+| `icon-192.png`          | 192 × 192 | Manifest, home screen on Android                                          |
+| `icon-512.png`          | 512 × 512 | Manifest, splash screen                                                   |
+| `icon-maskable-512.png` | 512 × 512 | Android adaptive icons. Same mark, ~10% padding, ink to the edges         |
+| `apple-touch-icon.png`  | 180 × 180 | iOS, which ignores the manifest. Opaque: iOS puts no background behind it |
+
+The installed window runs in Clémentine, like Play. Two raw values are duplicated outside the token file because neither a manifest nor a `<meta>` tag can read a custom property: `theme_color` is Clémentine `--ink` `#F36F27`, `background_color` is `--paper` `#FFFFFF`. Both are commented at their source. Changing either ink means changing it in three places.
+
 ### Focus, everywhere
 
 Every interactive element shows the same focus ring: a `--line-ring` outline in `--pencil` with a `--line-gap` gap in `--paper`. Pencil, not ink, so it is visible on ink-filled buttons and stays the same in every theme.

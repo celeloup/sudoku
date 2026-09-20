@@ -28,6 +28,14 @@ Decided on 19 Sep 2026, while building the print grid.
 | 15  | Who imposes the sheet?                         | The app. The print dialog's "pages per sheet" scales pages to fit, which voids every measurement in the test print.                                                                                                                                                                                                                                       |
 | 16  | Where does the seed sit against the safe line? | Its descender, not its baseline. The safe line is a clearance rule and the seed alphabet still contains p, q and y.                                                                                                                                                                                                                                       |
 
+Decided on 20 Sep 2026, while making the app installable.
+
+| #   | Question                                   | Outcome                                                                                                                                                                                                                                                                          |
+| --- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 17  | How is the app installed and made offline? | A hand-written manifest and service worker in `src/public/`, no Workbox and no build plugin. The build is 216 KB with hashed filenames, so ~50 lines of runtime caching does what a generated precache manifest would, and stays readable.                                       |
+| 18  | Which caching strategy?                    | Network first for the two HTML documents, so a deploy is picked up on the next online load; cache first for everything else, which is safe because Vite hashes it. Nothing is precached on install: the first visit is online by definition and caches the shell as it loads it. |
+| 19  | Where do the install colors live?          | Duplicated. `theme_color` and `background_color` are raw hex in the manifest and the HTML heads, because neither can read a CSS custom property. Commented at every site rather than pretended away.                                                                             |
+
 ## Build order
 
 1. Done, 19 Sep 2026. The tokens are in `src/tokens.css`, including the print geometry the Print spec had measured but never named.
@@ -35,6 +43,8 @@ Decided on 19 Sep 2026, while building the print grid.
 3. Done, 19 Sep 2026. The `play` grid states, the number pad, the button and the Play screen itself, at `src/index.html`, `src/play.css` and `src/ui/play.ts`. The old engine harness (`src/ui/main.ts`, `src/ui/board.ts`, `src/styles.css`) is gone. Puzzle generation moved into a Web Worker on the way, so the screen stays responsive through Hard's multi-second tail.
 4. Build the Print screen. It exercises the theme model end to end.
 5. Everything else.
+
+Open, added 21 Sep 2026: **`src/public/icon-maskable-512.png` is a copy of `icon-512.png` and has no safe zone.** The wordmark bleeds to all four edges, so Android's circular mask cuts the S, the right-hand K and U, and the bottom row. Re-export it with every letter inside a centred 410 px circle — the wordmark at about 60% scale on the same solid `#F36F27` square, still full-bleed and opaque. Until then the installed Android icon is cropped; nothing else is affected.
 
 Measured off the rendered page, 19 Sep 2026: page 73.95 × 104.97 mm, grid 65.35 mm centred with 4.30 mm each side, both 2.2 mm gaps exact, cap heights 10.60 and 2.00 mm, seed clearing the safe line by 4.23 mm.
 

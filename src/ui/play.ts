@@ -13,6 +13,7 @@ import {
   type PlayState,
 } from './play-state';
 import { canUndo, clear, commit, createHistory, undo } from './history';
+import './register-sw';
 
 const playEl = document.querySelector<HTMLElement>('.sdp-play')!;
 const gridEl = document.querySelector<HTMLDivElement>('#grid')!;
